@@ -1,0 +1,53 @@
+#!/bin/sh
+
+#
+# VirtualBox KMST (kernel module signing tool)
+# Created and developed by Liam Powell (gfelipe099)
+# vbox-kmst file
+# For GNU/Linux
+#
+
+# set config dir
+configDir="/root/.config/vbox-kmst/"
+
+# check if running as root
+if [ "$(whoami)" != "root" ]; then
+    echo "You must execute this script as root"
+    exit 0
+    else
+        # create configuration directory if it does not exist
+        if [ ! -d ${configDir} ]; then
+            mkdir -p ${configDir}
+        fi
+fi
+
+if [ -z ${1} ]; then
+    echo "Specify an argument: import-key or sign-kernel-modules"
+    exit
+elif [ ${1} = "import-key" ]; then
+    # if the certificate does not exist create it and set proper permissions
+    if [ ! -f ${configDir}vbox.priv ]; then
+        echo "The private keys do not exist, creating it..."
+        openssl req -new -x509 -newkey rsa:2048 -keyout ${configDir}vbox.priv -outform DER -out ${configDir}vbox.der -nodes -days 36500 -subj "/CN=VirtualBox Secure Boot Key/" 2>/dev/null
+        chmod 600 ${configDir}vbox.priv
+        echo "Please specify a password to import the key below:"
+        mokutil --import ${configDir}vbox.der
+            else
+                echo "Please specify a password to import the key below:"
+                mokutil --import ${configDir}vbox.der
+    fi
+elif [ ${1} = "sign-kernel-modules" ]; then
+    if [ ! -f ${configDir}vbox.priv ]; then
+        echo "ERROR: sign-file: No private keys were found"
+        echo "Run import-key first"
+        exit
+        else
+            for vboxkmodule in $(dirname $(modinfo -n vboxdrv))/*.ko; do
+                echo "Signing kernel module ${vboxkmodule}..."
+                /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ${configDir}vbox.priv ${configDir}vbox.der "${vboxkmodule}" 2>/dev/null
+            done
+    fi
+    else
+        echo "Unknown argument, try again with: import-key or sign-kernel-modules"
+        exit
+fi

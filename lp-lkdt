@@ -1,0 +1,218 @@
+#!/bin/sh
+
+#
+# Liam Powell's Linux kernel download tool
+# Created and developed by Liam Powell (gfelipe099)
+# lp-lkdt file
+# For Debian GNU/Linux 10 (buster) amd64
+#
+
+pkgs="flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
+kernelBranch="v5.x"
+linuxVersion="5.4.81"
+downloadUrl="https://mirrors.edge.kernel.org/pub/linux/kernel/${kernelBranch}/linux-${linuxVersion}.tar.gz"
+maindir="/root/.cache/lp-lkdt/"
+srcdir="/root/.cache/lp-lkdt/src/"
+debdir="/root/.cache/lp-lkdt/deb/"
+
+if [ "$(whoami)" != root ]; then
+    echo "--> You must execute this script as root."
+    exit
+fi
+
+clear
+echo "Please wait..."
+apt-get install -yy figlet >/dev/null
+clear
+figlet -c "Liam Powell's"
+figlet -c "LKDT"
+apt-get purge -yy figlet --autoremove >/dev/null
+echo "Welcome to Liam Powell's Linux kernel download tool"
+echo "Created and developed by Liam Powell (gfelipe099)"
+echo "Kernel version in use: $(uname -r)" && echo ""
+
+if [ ! -d ${maindir} >/dev/null ]; then
+    echo "--> Main directory ${maindir} not found, creating it..."
+    mkdir -p ${maindir}
+    else
+        if [ ! -f ${maindir}main.conf >/dev/null ]; then
+            echo "--> WARNING: ${maindir}main.conf: Configuration file not found."
+            echo "    Default settings were loaded." && echo ""
+            read -p "--> Do you want to use a custom config file? [yes/no]: " configPrompt && echo ""
+            if [ -z ${configPrompt} ]; then
+                echo "    No custom config file will be used"
+            elif [ ${configPrompt} = "yes" ]; then
+                echo "--> Downloading configuration file from the repository..."
+                curl -sL https://raw.githubusercontent.com/gfelipe099/lp-lkdt/main/main.conf.example > ${maindir}main.conf
+                if [ -f ${maindir}main.conf ]; then
+                    read -p "--> Do you want to edit the file? [Y/N]: " editfile
+                    if [ -z ${editfile} ]; then
+                        echo "    The file will not be edited."
+                    elif [ ${editfile} = "yes" ]; then
+                        echo "    Opening nano text editor..."
+                        sleep 3
+                        nano ${maindir}main.conf
+                    elif [ ${editfile} = "no" ]; then
+                        echo "    The file was not edited"
+                        else
+                            echo "    The file was not edited"
+                    fi
+                    . ${maindir}main.conf
+                    if [ -z ${pkgs} ]; then
+                        pkgs="flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
+                    elif [ -z ${kernelBranch} ]; then
+                        kernelBranch="v5.x"
+                    elif [ -z ${linuxVersion} ]; then
+                        linuxVersion="5.9.11"
+                    elif [ -z ${downloadUrl} ]; then
+                        downloadUrl="https://mirrors.edge.kernel.org/pub/linux/kernel/${kernelBranch}/linux-${linuxVersion}.tar.gz"
+                    elif [ -z ${maindir} ]; then
+                        maindir="/root/.cache/lp-lkdt/"
+                    elif [ -z ${srcdir} ]; then
+                        srcdir="/root/.cache/lp-lkdt/src/"
+                    elif [ -z ${debdir} ]; then
+                        debdir="/root/.cache/lp-lkdt/deb/"
+                    fi
+                fi
+            fi
+            else
+                if [ -f ${maindir}main.conf ]; then
+                    echo "--> Do you want to edit the file? [Y/N]: " editfile
+                    if [ -z ${editfile} ]; then
+                        echo "    The file will not be edited."
+                    elif [ ${editfile} = "yes" ]; then
+                        echo "    Opening nano text editor..."
+                        sleep 3
+                        nano ${maindir}main.conf
+                    elif [ ${editfile} = "no" ]; then
+                        echo "    The file was not edited"
+                        else
+                            echo "    The file was not edited"
+                    fi
+                    . ${maindir}main.conf
+                    if [ -z ${pkgs} ]; then
+                        pkgs="flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
+                    elif [ -z ${kernelBranch} ]; then
+                        kernelBranch="v5.x"
+                    elif [ -z ${linuxVersion} ]; then
+                        linuxVersion="5.9.11"
+                    elif [ -z ${downloadUrl} ]; then
+                        downloadUrl="https://mirrors.edge.kernel.org/pub/linux/kernel/${kernelBranch}/linux-${linuxVersion}.tar.gz"
+                    elif [ -z ${maindir} ]; then
+                        maindir="/root/.cache/lp-lkdt/"
+                    elif [ -z ${srcdir} ]; then
+                        srcdir="/root/.cache/lp-lkdt/src/"
+                    elif [ -z ${debdir} ]; then
+                        debdir="/root/.cache/lp-lkdt/deb/"
+                    fi
+                fi
+        fi
+fi
+
+# verify Debian GNU/Linux is running
+if [ ! -f /usr/bin/apt ]; then
+    echo "--> APT Package Manager was not found in this system, execution aborted."
+    exit
+    else
+        apt-get install -yy lsb-release >/dev/null
+        os=$(lsb_release -ds | sed 's/"//g')
+fi
+if [ "${os}" != "Debian GNU/Linux 10 (buster)" ]; then
+    echo "--> You must be using Debian GNU/Linux 10 (buster) to execute this script."
+    exit 2
+fi
+
+if [ -z ${1} ]; then
+    echo "--> You must specify an argument: download, install, uninstall, clean"
+    exit
+elif [ ${1} = "download" ]; then
+    if [ ! -d ${srcdir} ]; then
+    echo "--> Source directory ${srcdir} not found, creating it..."
+        mkdir -p ${srcdir}
+    fi
+    echo "--> Installing dependencies..."
+    apt-get install -y ${pkgs} 2>/dev/null
+
+    echo "--> Downloading Linux kernel source..."
+    curl -sL ${downloadUrl} > ${srcdir}linux-${linuxVersion}.tar.gz 2>/dev/null
+
+    echo "--> Extracting Linux kernel source..."
+    tar xf ${srcdir}linux-${linuxVersion}.tar.gz
+
+    echo "--> Copying kernel configuration file from the running system..."
+    cp /boot/config-$(uname -r) ${srcdir}/linux-${linuxVersion}/.config
+    exit
+elif [ ${1} = "compile" ]; then
+    if [ ! -d ${debdir} }; then
+        echo "--> deb directory ${debdir} not found, creating it..."
+        mkdir -p ${debdir}
+    fi
+    if [ ! -d linux-${linuxVersion} ]; then
+        echo "    ERROR: compile: The directory ${debdir}linux-${linuxVersion} was not found: The kernel source file has not been extracted yet."
+        exit
+        else
+            echo "    Compiling kernel and building deb packages..."
+            cd linux-${linuxVersion}
+            make clean
+            make olddefconf
+            make -j$(nproc) bindeb-pkg >/dev/null
+            mv *.deb ${debdir}
+            echo "    Kernel compilation done, now you can install it using the argument: install"
+    fi
+    exit
+elif [ ${1} = "install" ]; then
+    echo "Installing packages: linux-image${linuxVersion} linux-headers-${linuxVersion}..."
+    dpkg -i ${debdir}linux-image${linuxVersion}.deb ${debdir}linux-headers-${linuxVersion}
+    echo "--> The packages were installed successfully." && echo ""
+    while true; do
+    read -p "    Do you want to reboot now? [Y/N]: " input
+        case ${input} in
+            [Yy]* ) echo "        Rebooting the system..."; sleep 1; reboot; break;;
+            [Nn]* ) echo "        The system will not restart"; break;;
+            * ) echo "        Please type Y or N and try again.";;
+        esac
+    done
+elif [ ${1} = "uninstall" ]; then
+    echo "--> Uninstalling kernel..."
+    apt-get purge -yy --autoremove linux-image-${linuxVersion} linux-headers-${linuxVersion} 2>/dev/null
+    exit
+elif [ ${1} = "clean" ]; then
+    read -p "--> What directory shall be cleaned? [main/src/deb]: " input
+    if [ ${input} = "main" ]; then
+        echo "    WARNING!!! THIS WILL REMOVE EVERYTHING, INCLUDING ANY COMPILED KERNELS AND CONFIG FILES"
+        while true; do
+        read -p "        Continue? [Y/N]: " prompt
+            case ${prompt} in
+                [Yy]* ) echo "            Removing directory ${maindir}..."; rm -rf ${maindir}; echo "            Directory removed successfully"; exit;;
+                [Nn]* ) echo "            Directory ${maindir} was not removed"; exit;;
+                * ) echo "            Please answer Y or N and try again";
+            esac
+        done
+    elif [ ${input} = "src" ]; then
+        echo "--> WARNING!!! THIS WILL REMOVE ANY COMPILED KERNELS"
+        while true; do
+        read -p "    Continue? [Y/N]: " prompt
+            case ${prompt} in
+                [Yy]* ) echo "        Removing directory ${srcdir}..."; rm -rf ${srcdir}; echo "        Directory removed successfully"; exit;;
+                [Nn]* ) echo "        Directory ${srcdir} was not removed"; exit;;
+                * ) echo "        Please answer Y or N and try again";
+            esac
+        done
+    elif [ ${input} = "deb" ]; then
+        echo "--> WARNING!!! THIS WILL REMOVE ANY DEB FILES FROM ALL COMPILED KERNELS"
+        while true; do
+        read -p "    Continue? [Y/N]: " prompt
+            case ${prompt} in
+                [Yy]* ) echo "        Removing directory ${debdir}..."; rm -rf ${debdir}; echo "        Directory removed successfully"; exit;;
+                [Nn]* ) echo "        Directory ${debdir} was not removed"; exit;;
+                * ) echo "        Please answer Y or N and try again";
+            esac
+        done
+        else
+            echo "--> ERROR: ${1}: ${input}: Invalid argument, try again with: main, src or deb"
+            exit
+    fi
+    else
+        echo "--> ERROR: ${1}: Invalid argument, try again with: download, install or uninstall"
+        exit
+fi

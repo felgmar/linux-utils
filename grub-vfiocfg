@@ -1,0 +1,171 @@
+#!/bin/sh
+
+#
+# Created by Liam Powell (gfelipe099)
+# grub-vfiocfg file
+# For GRUB systems
+#
+
+# check if running as root
+if [ "$(whoami)" != "root" ]; then
+    echo "This script must be executed as root."
+    exit 0
+fi
+
+# check if the system is using GRUB
+if [ ! -f /etc/default/grub ]; then
+    echo "Your system is not using GRUB boot manager or the initial setup was not executed yet."
+    exit 1
+fi
+
+# load these functions in memory
+welcomeApt() {
+    clear
+    apt-get update >/dev/null && apt-get install -yy figlet >/dev/null
+    figlet -c "GPU Passthrough"
+    figlet -c "for GRUB systems"
+    apt-get purge -yy figlet --autoremove >/dev/null
+    echo "Welcome to the GPU Passthrough configuration tool!" && echo "Created by Liam Powell (gfelipe099)" && echo "Kernel version in use: $(uname -r)"
+}
+
+welcomePacman() {
+    clear
+    pacman -Sy >/dev/null && pacman -S figlet --needed --noconfirm >/dev/null
+    figlet -c "GPU Passthrough"
+    figlet -c "for GRUB systems"
+    apt-get purge -yy figlet --autoremove >/dev/null
+    echo "Welcome to the GPU Passthrough configuration tool!" && echo "Created by Liam Powell (gfelipe099)" && echo "Kernel version in use: $(uname -r)"
+}
+
+root() {
+    if [ ! -f conf/main.conf >/dev/null ]; then
+        echo "" && echo "ERROR: Configuration file 'main.conf' not found. Creating a new one..." && echo "" && echo ""
+        read -p ":: Who is the manufacturer of the CPU? (All lowercase) " cpuManufacturer
+
+            echo "" && echo "These are the GPUs available on the system:"
+
+            lspci -nn | grep "VGA\|Audio"
+
+            echo "" && echo "PAY ATTENTION:" && echo "  The value needed is between brackets at the end of each line" && echo ""
+            read -p "Which is the PCI ID of the GPU that you want to passthrough? " gpuPciId
+            read -p "Which is the PCI ID of the HDMI audio device that you want to passthrough? " hdmiAudioPciId
+
+	        printf "[Settings]\ncpuManufacturer="${cpuManufacturer}"\n\n[PCI IDs]\ngpuPciId="${gpuPciId}"\nhdmiAudioPciId="${hdmiAudioPciId}"\n" > main.conf && echo ""
+
+			while true; do
+		        read -p "Thank you. Do you want to start now? [Y/N]: " input
+				if [ ${input} = "N" ]; then
+					exit 0
+				elif [ ${input} = "n" ]; then
+					exit 0
+				elif [ ${input} = "no" ]; then
+					exit 0
+					else
+						break
+				fi
+			done
+			echo "" && echo "Starting in 5 seconds..." && echo ""
+            sleep 5
+            clear
+        else
+            . main.conf
+            echo "Your configuration file was found and loaded successfully!" && echo ""
+			while true; do
+		        read -p "Thank you. Do you want to start now? [Y/N]: " input
+				if [ ${input} = "N" ]; then
+					exit 0
+				elif [ ${input} = "N" ]; then
+					exit 0
+				elif [ ${input} = "no" ]; then
+					exit 0
+					else
+						break
+				fi
+			done
+			echo "" && echo "Starting in 5 seconds..." && echo ""
+            sleep 5
+            clear
+    fi
+}
+
+grubConfiguration() {
+    echo -n "Enabling IOMMU and configuring GRUB parameters... "
+    if [ ${cpuManufacturer} = "intel" ]; then
+        sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on iommu=pt rd.driver.pre=vfio-pci video=efifb:off"/g' /etc/default/grub
+
+    elif [ ${cpuManufacturer} = "amd" ]; then
+        sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amd_iommu=on iommu=pt rd.driver.pre=vfio-pci video=efifb:off"/g' /etc/default/grub
+    fi
+
+    echo "Regenerating GRUB bootloader entries... "
+    update-grub >/dev/null
+	echo ""
+}
+
+gpuPassthrough() {
+    echo "Adding PCI IDs to file '/etc/modprobe.d/vfio.conf'... "
+    printf "options vfio-pci ids="${gpuPciId}","${hdmiAudioPciId}"" > /etc/modprobe.d/vfio.conf
+
+    echo "Adding VFIO modules to initrd... "
+    printf "modules
+vfio
+vfio_iommu_type1
+vfio_pci
+vfio_virqfd" > /etc/initramfs-tools/modules && echo -e "${green}done${normalText}" || echo -e "${red}failed${normalText}"
+
+    echo "Updating initramfs for every installed kernel ... "
+    update-initramfs -u -k all >/dev/null
+}
+
+nestedVirtualization() {
+	echo ""
+    while true; do 
+    read -p "Do you want to enable nested virtualization? (Not required, but may improve performance) [Y/N]: " input
+        case ${input} in
+            [Yy]* ) echo "Enabling nested virtualization ... "; printf "options kvm_intel nested=1\noptions kvm-"${cpuManufacturer}" enable_shadow_vmcs=1\noptions kvm-"${cpuManufacturer}" enable_apicv=1\noptions kvm-"${cpuManufacturer}" ept=1\n" > /etc/modprobe.d/kvm.conf; break;;
+            [Nn]* ) echo "The user ${USER} cancelled the operation. Nested virtualization was not enabled."; break;;
+            * ) echo -e "${red}Invalid input. Try again with Y or N.${normalText}";;
+        esac
+    done
+    echo ""
+}
+
+restartSystem() {
+    echo -e "${green}${boldText}The configuration finished sucessfully.${normalText}"
+    read -p "Reboot now? [Y/N]: " input
+	if [ -z ${input} ]; then
+		exit
+	elif [ ${input} = "N" ]; then
+		exit
+	elif [ ${input} = "n" ]; then
+		exit
+	elif [ ${input} = "no" ]; then
+		exit
+	elif [ ${input} = "Y" ]; then
+		reboot
+	elif [ ${input} = "y" ]; then
+		reboot
+	elif [ ${input} = "yes" ]; then
+		reboot
+	fi
+}
+
+# check if the package manager is the right one and then initialize functions in this order
+if [ -f /usr/bin/apt ]; then
+	welcomeApt
+	root
+	grubConfiguration
+	gpuPassthrough
+	nestedVirtualization
+	restartSystem
+elif [ -f /usr/bin/pacman ]; then 
+	welcomePacman
+	root
+	grubConfiguration
+	gpuPassthrough
+	nestedVirtualization
+	restartSystem
+	else
+	    echo "Only APT and Pacman package managers are currently supported. The script cannot continue on this system."
+fi
+
