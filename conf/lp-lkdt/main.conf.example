@@ -1,0 +1,28 @@
+#
+# Liam Powell's Linux kernel download tool
+# Created and developed by Liam Powell (gfelipe099)
+# lp-lkdt's main configuration file
+# For Debian GNU/Linux 10 (buster) amd64
+#
+
+#
+# To change the script's behaviour uncomment the values below
+# and modify them to your needs. Be sure to not leave them blank
+# or the script will ignore them with the default values.
+#
+# Default parameters
+#     pkgs             =     "flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
+#     kernelBranch     =     "v5.x"
+#     linuxVersion     =     "5.4.81"
+#     downloadUrl      =     "https://mirrors.edge.kernel.org/pub/linux/kernel/${kernelBranch}/linux-${linuxVersion}.tar.gz"
+#     maindir          =     "/root/.cache/lp-lkdt/"
+#     srcdir           =     "/root/.cache/lp-lkdt/src/"
+#     debdir           =     "/root/.cache/lp-lkdt/deb/"
+#
+pkgs="flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
+kernelBranch=""
+linuxVersion=""
+downloadUrl=""
+maindir=""
+srcdir=""
+debdir=""
