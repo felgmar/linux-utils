@@ -26,7 +26,7 @@ sudo apt-get install -yy python3-pip
 
 echo "--> Installing dependencies..."
 python3 -m pip install -U pip >/dev/null
-python3 -m pip install -U -r https://codeberg.org/RemixDev/deemix-pyweb/raw/branch/main/requirements.txt --user >/dev/null
+python3 -m pip install -U -r https://git.rip/RemixDev/deemix-pyweb/-/raw/main/requirements.txt --user >/dev/null
 pip3 install pyqt5 >/dev/null
 
 echo "--> Retrieving needed packages..."
