@@ -19,7 +19,7 @@ apt-get purge -yy ${pkgs} --autoremove >/dev/null && apt-get install -yy ${pkgs}
 
 if [ ${1} = "secureboot" ]; then
     echo "Reinstalling GRUB with UEFI Secure Boot support..."
-    grub-install --uefi-secure-boot --esp-directory=${bootDir} --bootloader-id=${distro}
+    grub-install --uefi-secure-boot --efi-directory=${bootDir} --bootloader-id=${distro}
     update-grub >/dev/null
     echo "Now you need to reboot the system, and enable Secure Boot (and/or install default keys)" && echo ""
     read -p "Reboot now? [yes/no]: " input
