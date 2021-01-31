@@ -1,8 +1,8 @@
 #!/bin/sh
 
 update-mirrors() {
-    if [ ! -f /usr/bin/scrcpy ]; then
-        echo "srcpy is not installed on this system, install it to use this command"
+    if [ ! -f /usr/bin/reflector ]; then
+        echo "reflector is not installed on this system, install it to use this command"
         exit
     fi
     if [ -z ${country} ]; then
