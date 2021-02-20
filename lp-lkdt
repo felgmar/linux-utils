@@ -7,7 +7,7 @@
 # For Debian GNU/Linux 10 (buster) amd64
 #
 
-pkgs="dwarves flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
+pkgs="sudo dwarves flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
 kernelBranch="v5.x"
 linuxVersion="5.4.99"
 downloadUrl="https://mirrors.edge.kernel.org/pub/linux/kernel/${kernelBranch}/linux-${linuxVersion}.tar.gz"
@@ -68,8 +68,8 @@ if [ -d ${mainDir} ]; then
         read -p "--> Use the config file? [yes/no]: " useConfigFile
         if [ ${useConfigFile} = "yes" ]; then
             . ${mainDir}main.conf
-            if [ -z ${pkgs} ]; then
-                pkgs="dwarves flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
+            if [ -z ${pkgs} ] > /dev/null 2>&1; then
+                pkgs="sudo dwarves flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
             elif [ -z ${kernelBranch} ]; then
                 kernelBranch="v5.x"
             elif [ -z ${linuxVersion} ]; then
@@ -162,30 +162,32 @@ elif [ ${1} = "compile" ]; then
     fi
     exit
 elif [ ${1} = "install" ]; then
-    if [ ! -f ${debDir}linux-image-${linuxVersion}.deb ]; then
-        echo "--> ERROR: ${1}: ${debDir}linux-image-${linuxVersion}.deb: No such file or directory"
-        echo "    Did you compile the kernel first?"
-        exit
-    elif [ ! -f ${debDir}linux-headers-${linuxVersion}.deb ]; then
-        echo "--> ERROR: ${1}: ${debDir}linux-image-${linuxVersion}.deb: No such file or directory"
-        echo "    Did you compile the kernel first?"
+    if [ ! -d ${debDir} ]; then
+        echo "--> ERROR: ${1}: ${debDir}: No such file or directory" 
         exit
     fi
-    echo "--> Installing packages: linux-image-${linuxVersion} linux-headers-${linuxVersion}..."
-    dpkg -i ${debDir}linux-image-${linuxVersion}.deb ${debDir}linux-headers-${linuxVersion} > /dev/null 2>&1
-    echo "    The packages were installed successfully." && echo ""
+    for debpkg in ${debDir}*.deb; do
+        echo "--> Installing package: ${debpkg}..."
+        dpkg -i ${debpkg} > /dev/null 2>&1
+    done
+    update-grub
     while true; do
-        read -p "        Do you want to reboot now? [Y/N]: " input
+        read -p "    Do you want to reboot now? [Y/N]: " input
             case ${input} in
-                [Yy]* ) echo "        Rebooting the system..."; sleep 1; reboot; break;;
-                [Nn]* ) echo "        The system will not restart"; break;;
-                * ) echo "        Please type Y or N and try again.";;
+                [Yy]* ) echo "    Rebooting the system..."; sleep 1; reboot; break;;
+                [Nn]* ) echo "    The system will not restart"; break;;
+                * ) echo "    Please type Y or N and try again.";;
             esac
     done
 elif [ ${1} = "uninstall" ]; then
-    echo "--> Uninstalling kernel..."
-    apt-get purge -yy --autoremove linux-image-${linuxVersion} linux-headers-${linuxVersion}
-    exit
+    if [ ! -d ${debDir} ]; then
+        echo "--> ERROR: ${1}: ${debDir}: No such file or directory" 
+        exit
+    fi
+    for debpkg in ${debDir}*.deb; do
+        echo "--> Purging package: ${debpkg}..."
+        sudo apt-get purge --autoremove ${debpkg} > /dev/null 2>&1
+    done
 elif [ ${1} = "clean" ]; then
     while true; do
         read -p "--> What directory shall be cleaned? [main/src/deb]: " input
