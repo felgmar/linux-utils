@@ -11,18 +11,18 @@
 # or the script will ignore them with the default values.
 #
 # Default parameters
-#     pkgs             =     "flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
+#     pkgs             =     "dwarves flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
 #     kernelBranch     =     "v5.x"
-#     linuxVersion     =     "5.4.81"
+#     linuxVersion     =     "5.4.99"
 #     downloadUrl      =     "https://mirrors.edge.kernel.org/pub/linux/kernel/${kernelBranch}/linux-${linuxVersion}.tar.gz"
 #     maindir          =     "/root/.cache/lp-lkdt/"
 #     srcdir           =     "/root/.cache/lp-lkdt/src/"
 #     debdir           =     "/root/.cache/lp-lkdt/deb/"
 #
-pkgs="flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
+pkgs="dwarves flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
 kernelBranch=""
 linuxVersion=""
-downloadUrl=""
+downloadUrl="https://mirrors.edge.kernel.org/pub/linux/kernel/${kernelBranch}/linux-${linuxVersion}.tar.gz"
 maindir=""
 srcdir=""
 debdir=""
