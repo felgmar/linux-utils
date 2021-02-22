@@ -1,0 +1,116 @@
+#!/bin/bash
+
+#
+# Created by Liam Powell (gfelipe099)
+# Android debloater tool
+# android-debloater
+# for Android 8.0 Oreo or higher
+#
+
+debloat() {
+    bash -c '. ~/.config/android-debloater/pkgs.conf; android_user=0 uninstall; exit'
+}
+
+usage() {
+    cat << EOF
+
+Usage: android-debloater [--start|--check-packages] {--help,-h}
+
+Options:
+--start,-s            Begins debloating of Android devices
+--check-packages,-c   Checks which packages are available for debloating
+--help,-h             Prints this help
+
+EOF
+}
+
+#
+# first of all, check if running as root
+#
+if [ "$(whoami)" = "root" ]; then
+    echo "This script does not support root user." && echo ""
+    exit 0
+fi
+
+if [ -z "$1" ]; then
+    echo ":: ERROR: Missing required argument"
+    usage
+    exit
+fi
+
+case "$@" in 
+    --help|-h)
+    usage
+    ;;
+
+    --start|-s)
+    debloat
+    ;;
+    --check-packages|-c)
+    if [ -f ~/.config/android-debloater/pkgs.conf ]; then
+        bash -c '. ~/.config/android-debloater/pkgs.conf; check-packages; exit'
+        else
+            echo ":: ERROR: ~/.config/android-debloater/pkgs.conf: No such file or directory"
+            read -p ":: Do you want to obtain this file online? <Y/n> " input
+            if [ -z ${input} ]; then
+                echo "    --> File not downloaded"
+                exit
+            elif [ ${input} = "Y" ]; then
+                echo "    --> Downloading file..."
+                if [ -f /usr/bin/curl ]; then
+                    if [ ! -d ~/.config/android-debloater/ ]; then
+                        mkdir -p ~/.config/android-debloater/
+                    fi
+                    curl -sL https://raw.githubusercontent.com/gfelipe099/bash-utils/main/conf/android-debloater/pkgs.conf > ~/.config/android-debloater/pkgs.conf
+                fi
+                if [ -f /usr/bin/wget ]; then
+                    if [ ! -d ~/.config/android-debloater/ ]; then
+                        mkdir -p ~/.config/android-debloater/
+                    fi
+                    wget -q https://raw.githubusercontent.com/gfelipe099/bash-utils/main/conf/android-debloater/pkgs.conf -O ~/.config/android-debloater/pkgs.conf
+                fi
+            elif [ ${input} = "y" ]; then
+                echo "    --> Downloading file..."
+                if [ -f /usr/bin/curl ]; then
+                    if [ ! -d ~/.config/android-debloater/ ]; then
+                        mkdir -p ~/.config/android-debloater/
+                    fi
+                    curl -sL https://raw.githubusercontent.com/gfelipe099/bash-utils/main/conf/android-debloater/pkgs.conf > ~/.config/android-debloater/pkgs.conf
+                fi
+                if [ -f /usr/bin/wget ]; then
+                    if [ ! -d ~/.config/android-debloater/ ]; then
+                        mkdir -p ~/.config/android-debloater/
+                    fi
+                    wget -q https://raw.githubusercontent.com/gfelipe099/bash-utils/main/conf/android-debloater/pkgs.conf -O ~/.config/android-debloater/pkgs.conf
+                fi
+            elif [ ${input} = "yes" ]; then
+                echo "    --> Downloading file..."
+                if [ -f /usr/bin/curl ]; then
+                    if [ ! -d ~/.config/android-debloater/ ]; then
+                        mkdir -p ~/.config/android-debloater/
+                    fi
+                    curl -sL https://raw.githubusercontent.com/gfelipe099/bash-utils/main/conf/android-debloater/pkgs.conf > ~/.config/android-debloater/pkgs.conf
+                fi
+                if [ -f /usr/bin/wget ]; then
+                    if [ ! -d ~/.config/android-debloater/ ]; then
+                        mkdir -p ~/.config/android-debloater/
+                    fi
+                    wget -q https://raw.githubusercontent.com/gfelipe099/bash-utils/main/conf/android-debloater/pkgs.conf -O ~/.config/android-debloater/pkgs.conf
+                fi
+                sleep 2
+                bash -c '. ~/.config/android-debloater/pkgs.conf; check-packages; exit'
+                else
+                    if [ ${input} = "N" ]; then
+                        echo "   --> File not downloaded"
+                        exit
+                    elif [ ${input} = "n" ]; then
+                        echo "   --> File not downloaded"
+                        exit
+                    elif [ ${input} = "no" ]; then
+                        echo "   --> File not downloaded"
+                        exit
+                    fi
+            fi
+    fi
+    ;;
+esac
