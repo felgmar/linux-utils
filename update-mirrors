@@ -1,9 +1,11 @@
 #!/bin/sh
 
 update-mirrors() {
-    if [ ! -f /usr/bin/reflector ]; then
-        echo "reflector is not installed on this system, install it to use this command"
-        exit
+    if [ ! -f /usr/bin/reflector ] || [ ! -f /usr/bin/sudo ]; then
+        echo ":: ERROR: reflector: unknown command"
+        echo ":: ERROR: sudo: unknown command"
+        echo "    --> Installing missing dependencies: reflector sudo..."
+        sudo pacman -S reflector --noconfirm --needed 2>/dev/null
     fi
     if [ -z ${country} ]; then
         read -p ":: Specify a country [e.g. United States]: " input1
