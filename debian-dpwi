@@ -25,9 +25,9 @@ fi
 sudo apt-get install -yy python3-pip
 
 echo "--> Installing dependencies..."
-python3 -m pip install -U pip >/dev/null
-python3 -m pip install -U -r https://git.rip/RemixDev/deemix-pyweb/-/raw/main/requirements.txt --user >/dev/null
-pip3 install pyqt5 >/dev/null
+python3 -m pip install -U pip > /dev/null 2>&1
+python3 -m pip install -U -r https://git.rip/RemixDev/deemix-pyweb/-/raw/main/requirements.txt --user > /dev/null 2>&1
+pip3 install pyqt5 > /dev/null 2>&1
 
 echo "--> Retrieving needed packages..."
 wget -q https://codeberg.org/RemixDev/deemix-pyweb/archive/main.tar.gz -O deemix-pyweb.tar.gz
@@ -51,19 +51,17 @@ if [ -f deemix-webui.tar.gz ]; then
 fi
 
 echo "--> Installing deemix..."
-pip3 install deemix >/dev/null
+pip3 install deemix > /dev/null 2>&1
 
 echo "--> Installing deemix-pyweb..."
 sudo cp -dr --no-preserve=ownership ${pkgDir}deemix-pyweb/ /usr/lib/
-sudo install -dm 755 /usr/lib/deemix-pyweb/ >/dev/null
-sudo chmod +x /usr/lib/deemix-pyweb/server.py /usr/lib/deemix-pyweb/deemix-pyweb.py >/dev/null
-sudo ln -s /usr/lib/deemix-pyweb/deemix-pyweb.desktop /usr/share/applications/deemix-pyweb.desktop >/dev/null
-sudo ln -s /usr/lib/deemix-pyweb/server.py /usr/bin/deemix-pyweb-server >/dev/null
-sudo ln -s /usr/lib/deemix-pyweb/deemix-pyweb.py /usr/bin/deemix-pyweb >/dev/null
+sudo install -dm 755 /usr/lib/deemix-pyweb/ > /dev/null 2>&1
+sudo chmod +x /usr/lib/deemix-pyweb/server.py /usr/lib/deemix-pyweb/deemix-pyweb.py > /dev/null 2>&1
+sudo ln -s /usr/lib/deemix-pyweb/deemix-pyweb.desktop /usr/share/applications/deemix-pyweb.desktop > /dev/null 2>&1
+sudo ln -s /usr/lib/deemix-pyweb/server.py /usr/bin/deemix-pyweb-server > /dev/null 2>&1
+sudo ln -s /usr/lib/deemix-pyweb/deemix-pyweb.py /usr/bin/deemix-pyweb > /dev/null 2>&1
 
 echo "--> Removing temporary folder in ${pkgDir}..."
 sudo rm -rf ${pkgDir}
 
 echo "--> deemix-pyweb is now installed on your system" && echo ""
-
-
