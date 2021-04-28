@@ -2,66 +2,75 @@
 
 #
 # Created by Liam Powell (gfelipe099)
-# A fork of nomis6432 (remixdev)'s https://aur.archlinux.org/packages/deemix-pyweb-git/
+# Debian Deemix PyWeb Installer
+# debian-dpwi file
 # For Debian GNU/Linux based systems
 #
 
-# Original sources: https://codeberg.org/RemixDev/deemix-pyweb, https://codeberg.org/RemixDev/deemix-webui
-
-if [ "$(whoami)" = root ]; then
-    echo "Please do not execute this script as root"
-    exit 0
-fi
-
 pkgDir="/tmp/deemix/"
-if [ ! -d ${pkgDir} ]; then
-    echo "--> Creating directory..."
-    mkdir -p ${pkgDir}
+if [ -d ${pkgDir} ]; then
+    echo "--> Removing previous '${pkgDir}' folder..."
+    rm -r ${pkgDir}
     cd ${pkgDir}
     else
+        echo "--> Creating directory..."
+        mkdir -p ${pkgDir}
         cd ${pkgDir}
 fi
 
-sudo apt-get install -yy python3-pip
-
-echo "--> Installing dependencies..."
-python3 -m pip install -U pip > /dev/null 2>&1
-python3 -m pip install -U -r https://git.rip/RemixDev/deemix-pyweb/-/raw/main/requirements.txt --user > /dev/null 2>&1
-pip3 install pyqt5 > /dev/null 2>&1
-
-echo "--> Retrieving needed packages..."
-wget -q https://codeberg.org/RemixDev/deemix-pyweb/archive/main.tar.gz -O deemix-pyweb.tar.gz
-wget -q https://codeberg.org/RemixDev/deemix-webui/archive/main.tar.gz -O deemix-webui.tar.gz
-
-echo "--> Extracting packages..."
-if [ -f deemix-pyweb.tar.gz ]; then
-    tar xf deemix-pyweb.tar.gz
-    else
-        echo "ERROR: The file deemix-pyweb.tar.gz couldn't be extracted because the repository does not exit or is temporarly down."
-        exit 2
+if [ -d /usr/share/deemix-pyweb ]; then
+    echo "--> Removing existing installation..."
+    sudo rm -r /usr/share/deemix-pyweb
+    sudo rm -r /usr/share/applications/deemix-pyweb.desktop
 fi
-if [ -f deemix-webui.tar.gz ]; then
-    if [ ! -d deemix-webui ]; then
-        tar xf deemix-webui.tar.gz
-        cp -dr --no-preserve=ownership deemix-webui/* deemix-pyweb/webui/
+
+
+cd ${pkgDir}
+
+if [ -f linux-x86_64-latest.zip ]; then
+    if [ ! -f /usr/bin/unzip ]; then
+        echo "    ERROR: unzip: command not found"
+        exit 1
+        else
+            echo "--> Extracting packages..."
+            unzip -qqo linux-x86_64-latest.zip
     fi
     else
-        echo "ERROR: The file deemix-webui.tar.gz couldn't be extracted because the repository does not exit or is temporarly down."
-        exit 2
+        echo "--> Retrieving needed packages..."
+        wget -q https://download.deemix.app/pyweb/linux-x86_64-latest.zip
+        if [ ! -f /usr/bin/unzip ]; then
+            echo "    ERROR: unzip: command not found"
+            exit 1
+            else
+                echo "--> Extracting packages..."
+                unzip -qqo linux-x86_64-latest.zip
+        fi
 fi
 
-echo "--> Installing deemix..."
-pip3 install deemix > /dev/null 2>&1
-
 echo "--> Installing deemix-pyweb..."
-sudo cp -dr --no-preserve=ownership ${pkgDir}deemix-pyweb/ /usr/lib/
-sudo install -dm 755 /usr/lib/deemix-pyweb/ > /dev/null 2>&1
-sudo chmod +x /usr/lib/deemix-pyweb/server.py /usr/lib/deemix-pyweb/deemix-pyweb.py > /dev/null 2>&1
-sudo ln -s /usr/lib/deemix-pyweb/deemix-pyweb.desktop /usr/share/applications/deemix-pyweb.desktop > /dev/null 2>&1
-sudo ln -s /usr/lib/deemix-pyweb/server.py /usr/bin/deemix-pyweb-server > /dev/null 2>&1
-sudo ln -s /usr/lib/deemix-pyweb/deemix-pyweb.py /usr/bin/deemix-pyweb > /dev/null 2>&1
+if [ ! -d /usr/share/deemix-pyweb ]; then
+    echo "    Creating directory '/usr/share/deemix-pyweb'... "
+    sudo mkdir -p /usr/share/deemix-pyweb
+fi
+printf "[Desktop Entry]
+Name=Deemix
+Icon=deemix-pyweb
+Type=Application
+Version=1.0
+StartupNotify=true
+Terminal=false
+Path=/usr/share/deemix-pyweb
+Exec=sh launch.sh
+" > ${pkgDir}/deemix-pyweb.desktop
+printf "#!/bin/bash\n./deemix-pyweb\n" > ${pkgDir}/launch.sh
+sudo cp -dr --no-preserve=ownership ${pkgDir}/* /usr/share/deemix-pyweb
+sudo install -dm 755 /usr/share/deemix-pyweb
+sudo cp --no-preserve=ownership ${pkgDir}/deemix-pyweb.desktop /usr/share/deemix-pyweb/
+sudo cp --no-preserve=ownership ${pkgDir}/launch.sh /usr/share/deemix-pyweb/
+sudo chmod +x /usr/share/deemix-pyweb/deemix-pyweb
+sudo ln -s /usr/share/deemix-pyweb/deemix-pyweb.desktop /usr/share/applications/deemix-pyweb.desktop
 
-echo "--> Removing temporary folder in ${pkgDir}..."
+echo "--> Removing temporary folder '${pkgDir}'..."
 sudo rm -rf ${pkgDir}
 
 echo "--> deemix-pyweb is now installed on your system" && echo ""
