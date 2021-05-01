@@ -8,7 +8,7 @@
 #
 
 debloat() {
-    bash -c '. ~/.config/android-debloater/pkgs.conf; android_user=0 uninstall; exit'
+    bash -c '. ~/.config/android-debloater/pkgs.conf; android_user=$(adb shell cmd activity get-current-user) uninstall; exit'
 }
 
 usage() {
@@ -22,6 +22,10 @@ Options:
 --help,-h             Prints this help
 
 EOF
+}
+
+checkDependencies() {
+    adb version > /dev/null 2>&1 || (printf "ERROR: adb: command not found\nInstall adb to continue.\n"; exit 1)
 }
 
 #
@@ -44,9 +48,11 @@ case "$@" in
     ;;
 
     --start|-s)
+        checkDependencies
         debloat
     ;;
     --check-packages|-c)
+        checkDependencies
         if [ -f ~/.config/android-debloater/pkgs.conf ]; then
             bash -c '. ~/.config/android-debloater/pkgs.conf; check-packages; exit'
             else
