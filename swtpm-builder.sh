@@ -5,6 +5,16 @@
 # For Ubuntu GNU/Linux amd64
 #
 
+help() {
+    printf "\nUsage: ${0} [PARAMETER]\n\nAccepted parameters are:
+    - install
+    - uninstall
+    - build
+    - setup
+    - fix-trousers-service
+    - clean\n\n"
+}
+
 if [ "$(lsb_release -ds | sed 's/ [0-9][0-9].[0-9][0-9]//g')" != "Ubuntu" ]; then
     echo "==> ERROR: You are not using Ubuntu which this script was developed for."
     exit
@@ -14,15 +24,15 @@ fixTrousersService() {
     echo '#!/bin/sh
 
 ### BEGIN INIT INFO
-# Provides:		tcsd trousers
-# Required-Start:	$local_fs $remote_fs $network
-# Required-Stop:	$local_fs $remote_fs $network
+# Provides:     tcsd trousers
+# Required-Start:   $local_fs $remote_fs $network
+# Required-Stop:    $local_fs $remote_fs $network
 # Should-Start:
 # Should-Stop:
-# Default-Start:	2 3 4 5
-# Default-Stop:		0 1 6
-# Short-Description:	starts tcsd
-# Description:		tcsd belongs to the TrouSerS TCG Software Stack
+# Default-Start:    2 3 4 5
+# Default-Stop:     0 1 6
+# Short-Description:    starts tcsd
+# Description:      tcsd belongs to the TrouSerS TCG Software Stack
 ### END INIT INFO
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -138,9 +148,18 @@ build() {
     fi
 }
 
+setup() {
+    if [ -d "/var/lib/swtpm-localca" ]; then
+        chown -R tss:tss /var/lib/swtpm-localca
+        chmod -R 755 /var/lib/swtpm-localca
+        if [ -x /usr/bin/swtpm_setup ]; then
+            swtpm_setup --tpm2 --tpm-state /var/lib/swtpm-localca
+        fi
+    fi
+}
 
 if [ -z "$1" ]; then
-    echo "Accepted arguments are: 'install', 'uninstall', 'build', 'fix-trousers-service', 'clean'"
+    help
     exit
 elif [ "$1" = "install" ]; then
     install
@@ -151,11 +170,14 @@ elif [ "$1" = "uninstall" ]; then
 elif [ "$1" = "build" ]; then
     build
     exit
+elif [ "$1" = "setup" ]; then
+    setup
+    exit
 elif [ "$1" = "fix-trousers-service" ]; then
     fixTrousersService
     exit
 elif [ "$1" = "clean" ]; then
     rm -rfv swtpm libtpms *.tar.xz *.dsc *.deb *.ddeb *.changes *.buildinfo
     else
-        echo "Accepted arguments are: 'install', 'build', 'fix-trousers-service', 'clean'"
+        help
 fi
