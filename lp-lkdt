@@ -9,7 +9,7 @@
 
 pkgs="sudo dwarves flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
 kernelBranch="v5.x"
-linuxVersion="5.4.99"
+linuxVersion="5.4.129"
 downloadUrl="https://mirrors.edge.kernel.org/pub/linux/kernel/${kernelBranch}/linux-${linuxVersion}.tar.gz"
 mainDir="/root/.cache/lp-lkdt/"
 srcDir="/root/.cache/lp-lkdt/src/"
