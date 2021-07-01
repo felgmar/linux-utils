@@ -1,36 +1,48 @@
 #!/bin/sh
 
 dependencies="hdparm"
-homeDir="/home/${USER}/"
+homeDir="/home/${USER}"
 
-if [ "$(whoami)" = root ]; then
+help() {
+    printf "\nUsage: ${0} [OPTIONS]
+
+You must specify an option to continue from the following:
+    --> configure
+    --> reset"
+}
+
+if [ "$(whoami)" = "root" ]; then
     echo "Please do not execute this script as root."
     exit 1
 fi
 
-if [ ! -f /usr/sbin/hdparm ]; then
-    apt-get install -y ${dependencies} >/dev/null
+if [ ! -x "/usr/sbin/hdparm" ]; then
+    if [ ! -x "/usr/bin/apt" ]; then
+        echo "Cannot continue, could not find APT Package Manager"
+        exit
+        else
+            apt-get install -y ${dependencies} > /dev/null 2>&1
+    fi
 fi
 
-if [ -z ${1} ]; then
-    echo "Missing required arguments: usbdev-damp [configure/reset]"
-    echo "You must specify an argument for this script from the following:"
-    echo "configure or reset"
+if [ -z "${1}" ]; then
+    echo "Missing required arguments: usbdev-damp [configure/reset]
+You must specify an argument for this script to continue."
     exit
-elif [ ${1} = "configure" ]; then
-    if [ -f ${homeDir}.usb_hdd_device ]; then
+elif [ "${1}" = "configure" ]; then
+    if [ -f "${homeDir}/.usb_hdd_device" ]; then
         echo "The script was already configured. Try again with the command 'reset', to change the device."
-        usbDevice=$(cat .usb_hdd_device)
-        sudo hdparm -B 255 ${usbDevice}
-        sudo hdparm -W 0 ${usbDevice}
-        sudo hdparm -K 1 ${usbDevice}
+        usbDevice="$(cat .usb_hdd_device)"
+        sudo hdparm -B 255 "${usbDevice}"
+        sudo hdparm -W 0 "${usbDevice}"
+        sudo hdparm -K 1 "${usbDevice}"
         exit 2
     fi
 
     while true; do
-        if [ -z ${usbDevice} ]; then
+        if [ -z "${usbDevice}" ]; then
             lsblk
-            echo "" && read -p "Please type in the USB HDD device name (/dev/sdX): " usbDevice
+            echo ""; read -p "Please type in the USB HDD device name of your choice: " usbDevice
             break
         fi
     done
@@ -41,14 +53,14 @@ elif [ ${1} = "configure" ]; then
 
     printf "${usbDevice}\n" > ${homeDir}.usb_hdd_device
     sleep 1
-elif [ ${1} = "reset" ]; then
-    if [ -f ${homeDir}.usb_hdd_device ]; then
+elif [ "${1}" = "reset" ]; then
+    if [ -f "${homeDir}/.usb_hdd_device" ]; then
         echo "Removing file '${homeDir}.usb_hdd_device'..."
-        rm ${homeDir}.usb_hdd_device
+        rm "${homeDir}/.usb_hdd_device"
         echo "Resetting device settings to default..."
         sudo hdparm -K 0 ${usbDevice}
         else
-            echo "ERROR: Cannot remove, ${homeDir}.usb_hdd_device: No such file or directory."
+            echo "ERROR: Cannot remove '${homeDir}/.usb_hdd_device': No such file or directory"
     fi
 fi
 
