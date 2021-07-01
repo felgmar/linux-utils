@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#
+# Created by Liam Powell (gfelipe099)
+# archlinux-sbct file
+# A tool to enable Secure Boot on Arch Linux systems
+# For Arch Linux amd64
+#
+
+#
+# check if running as root
+#
+if [ "$(whoami)" != "root" ]; then
+    echo "This script must be executed as root."
+    exit 0
+fi
+
+# Verify Arch Linux is running
+if [ ! -x /usr/bin/pacman ]; then
+    echo "Pacman Package Manager was not found in this system, execution aborted."
+    exit 1
+    else
+        pacman -S lsb-release --noconfirm --needed > /dev/null 2>&1
+        os=$(lsb_release -ds | sed 's/"//g')
+fi
+
+if [ "${os}" != "Arch Linux" ]; then
+    echo "You must be using Arch Linux to execute this script."
+    exit 1
+fi
+
+welcome() {
+    clear
+    pacman -S figlet --noconfirm --needed > /dev/null 2>&1
+    figlet -c "Arch Linux"
+    figlet -c "SBCT"
+    pacman -Rncsd figlet --noconfirm > /dev/null 2>&1
+    printf "\n\nWelcome to Arch Linux SBCT!\nKernel version: $(uname -r)\n"
+}
+
+root() {
+    dependencies="sbctl"
+    if [ ! -x "/usr/bin/sbctl" ]; then
+        echo ":: Installing package: '${dependencies}'..."
+        pacman -S "${dependencies}" --noconfirm --needed > /dev/null 2>&1
+    fi
+    printf "\n:: Creating secure boot signing keys..."
+    sbctl create-keys > /dev/null 2>&1
+    printf "\n:: Enrolling keys to EFI..."
+    sbctl enroll-keys > /dev/null 2>&1
+    printf "\n:: Signing all enrolled files with secure boot keys..."
+    sbctl sign-all > /dev/null 2>&1
+    printf "\:: All done! Check the status below\n"
+    sbctl status; echo ""; sbctl verify
+}
+# Initialize script functions in this order
+welcome
+root
