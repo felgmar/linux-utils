@@ -20,6 +20,11 @@ if [ "$(whoami)" != root ]; then
     exit
 fi
 
+if [ ! -x "/usr/bin/apt" ]; then
+    echo "Cannot continue, no APT Package Manager found"
+    exit 1
+fi
+
 clear
 echo "Please wait..."
 apt-get install -yy figlet > /dev/null 2>&1
