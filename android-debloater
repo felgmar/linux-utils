@@ -14,9 +14,9 @@ debloat() {
 usage() {
     cat << EOF
 
-Usage: android-debloater [--start|--check-packages] {--help,-h}
+Usage: android-debloater [OPTIONS]
 
-Options:
+Use any of these options:
 --start,-s            Begins debloating of Android devices
 --check-packages,-c   Checks which packages are available for debloating
 --help,-h             Prints this help
@@ -25,7 +25,7 @@ EOF
 }
 
 checkDependencies() {
-    adb version > /dev/null 2>&1 || (printf "ERROR: adb: command not found\nInstall adb to continue.\n"; exit 1)
+    @adb version > /dev/null 2>&1 || (printf "ERROR: adb: command not found\nInstall adb to continue.\n"; exit 1)
 }
 
 #
