@@ -1,0 +1,17 @@
+#!/usr/bin/sh
+if [ -x "/usr/bin/curl" ]; then
+    echo "==> Removing old ISO images (if any)..."
+    for f in /mnt/container/kvm-cdn/isos/virtio/*.iso; do
+	rm -v "${f}"
+    done
+    echo ""; echo "==> Fetching the latest virtio-win ISO..."
+    curl -L https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso > /mnt/container/kvm-cdn/isos/virtio/virtio-stable.iso
+    if [ -f "/mnt/container/kvm-cdn/isos/virtio/virtio-stable.iso" ]; then
+        echo "    --> Download successful"; echo ""
+    fi
+    echo "==> Fetching the stable virtio-win ISO..."
+    curl -L https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso > /mnt/container/kvm-cdn/isos/virtio/virtio-latest.iso
+    if [ -f "/mnt/container/kvm-cdn/isos/virtio/virtio-latest.iso" ]; then
+        echo "    --> Download successful"; echo ""
+    fi
+fi
