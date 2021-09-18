@@ -1,0 +1,127 @@
+#!/usr/bin/sh
+
+#
+# A git helper script
+# Made by Ken Hoo (mrkenhoo)
+# git-mrkenhoo file
+#
+
+set -e
+
+help() {
+    cat <<EOF
+Usage: ${0} [OPTIONS]
+
+Available options are:
+    --create-ssh-key    Creates an SSH key for GitHub private repositories authentication
+    --status,-S         Shows the current status of the repository
+    --commit,-C         Adds all the new modified files on the repository and then commits the changes
+    --clone,-c          Clones the specified repository (on private repositories it requires a verified SSH-key)
+    --pull,-p           Fetches the latest changes from the repository
+    --add-tag,-a        Adds a label to the commit
+    --delete-tag,-d     Deletes a label from the commit
+    --show-tags,-s      Shows tags from current repository (if any)
+    --help,-h           Shows this help message
+
+EOF
+}
+
+if [ -z ${1} ]; then
+    echo ""; echo "Nothing to do!"; echo ""; help
+fi
+
+if [ "${*}" = "--help" ] || [ "${*}" = "-h" ]; then
+   echo ""; help
+fi
+
+while [ $# -gt 0 ]; do
+    case "${1}" in
+        --create-ssh-key)
+            if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
+                if [ -z "${email}" ]; then
+                    read -p "Type in your email address: " email
+                    echo "Press enter when prompted to save the file into the default directory"
+                    ssh-keygen -t ed25519 -C "${email}"
+                    else
+                        echo "Press enter when prompted to save the file into the default directory"
+                        ssh-keygen -t ed25519 -C "${email}"
+                fi
+                echo "Copy and paste this hash onto the 'SSH and GPG keys' settings menu:"
+                $(cat "$HOME/.ssh/id_ed25519")
+                else
+                    read -p "An SSH key already exists in $HOME/.ssh/id_ed25519. Want to overwrite it?" overwriteSshKeyFile
+                    case ${overwriteSshKeyFile} in
+                         [Yy])
+                            if [ -z "${email}" ]; then
+                                read -p "Type in your email address" email
+                                ssh-keygen -t ed25519 -C "${email}"
+                            fi
+                        ;;
+                        *)
+                            echo "File not overwritten, here's your unchanged hash:"
+                            echo "Copy and paste this hash onto the 'SSH and GPG keys' settings menu:"
+                            $(cat "$HOME/.ssh/id_ed25519")
+                        ;;
+                    esac
+            fi
+            exit
+        ;;
+        --status|-s)
+            git status $(pwd)
+            exit
+        ;;
+        --commit|-C)
+            git add .
+            if [ -z "${commitMessage}" ]; then
+                read -p "Type the message for this commit: " commitMessage
+                echo git commit -m "${commitMessage}"
+                git commit -m "${commitMessage}"
+                else
+                    echo git commit -m "${commitMessage}"
+                    git commit -m "${commitMessage}"
+            fi
+            git push
+            git push --tags
+            exit
+        ;;
+
+        --clone|-c)
+            shift
+            if [ ! -z "${1}" ]; then
+                git clone git@github.com:mrkenhoo/"${1}"
+                else
+                    echo "Please specify a repository to clone it"
+                    exit 0
+            fi
+            exit
+        ;;
+
+        --pull|-p)
+            git pull
+            exit
+        ;;
+
+        --add-tag|-a)
+            shift
+            git tag -a label -m "${1}"
+            exit
+        ;;
+
+        --delete-tag|-d)
+            shift
+            git tag -d label
+            exit
+        ;;
+
+        --show-tags|-s)
+            git tag
+            exit
+        ;;
+
+        *)
+            shift
+            echo "ERROR: ${1}: Invalid or unknown command"
+        ;;
+    esac
+    shift > /dev/null 2>&1
+done
