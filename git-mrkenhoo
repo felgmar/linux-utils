@@ -16,8 +16,9 @@ Available options are:
     --create-ssh-key    Creates an SSH key for GitHub private repositories authentication
     --status,-S         Shows the current status of the repository
     --commit,-C         Adds all the new modified files on the repository and then commits the changes
+    --pull,-P           Fetches the latest changes from the repository
     --clone,-c          Clones the specified repository (on private repositories it requires a verified SSH-key)
-    --pull,-p           Fetches the latest changes from the repository
+    --push,-P           Pushes the latest local commit to the repository
     --add-tag,-a        Adds a label to the commit
     --delete-tag,-d     Deletes a label from the commit
     --show-tags,-s      Shows tags from current repository (if any)
@@ -66,10 +67,12 @@ while [ $# -gt 0 ]; do
             fi
             exit
         ;;
-        --status|-s)
+        
+        --status|-S)
             git status $(pwd)
             exit
         ;;
+        
         --commit|-C)
             git add .
             if [ -z "${commitMessage}" ]; then
@@ -96,20 +99,36 @@ while [ $# -gt 0 ]; do
             exit
         ;;
 
-        --pull|-p)
+        --pull|-P)
             git pull
             exit
+        ;;
+        
+        --push|-p)
+            git push
+            git push --tags
         ;;
 
         --add-tag|-a)
             shift
-            git tag -a label -m "${1}"
+            if [ -z "${labelName}" ] && [-z "${labelMessage}" ]; then
+                read -p "How the label should be named?: " labelName
+                read -p "Type a message for the label: " labelMessage
+                git tag -a "${labelName}" -m "${labelMessage}"
+                else
+                    git tag -a "${labelName}" -m "${labelMessage}"
+            fi
             exit
         ;;
 
         --delete-tag|-d)
             shift
-            git tag -d label
+            if [ -z "${labelName}" ]; then
+                read -p "Type the label to delete: " labelName
+                git tag -d "${labelName}"
+                else
+                    git tag -d "${labelName}"
+            fi
             exit
         ;;
 
