@@ -19,6 +19,7 @@ Available options are:
     --pull,-P           Fetches the latest changes from the repository
     --clone,-c          Clones the specified repository (on private repositories it requires a verified SSH-key)
     --push,-P           Pushes the latest local commit to the repository
+    --add,-A            Adds specified file(s) to be commited
     --add-tag,-a        Adds a label to the commit
     --delete-tag,-d     Deletes a label from the commit
     --show-tags,-s      Shows tags from current repository (if any)
@@ -47,32 +48,26 @@ while [ $# -gt 0 ]; do
                         echo "Press enter when prompted to save the file into the default directory"
                         ssh-keygen -t ed25519 -C "${email}"
                 fi
-                echo "Copy and paste this hash onto the 'SSH and GPG keys' settings menu:"
-                $(cat "$HOME/.ssh/id_ed25519")
+                printf "\nHere's your public SSH key:\n\n$(cat "$HOME/.ssh/id_ed25519")\n\n"
                 else
-                    read -p "An SSH key already exists in $HOME/.ssh/id_ed25519. Want to overwrite it?" overwriteSshKeyFile
-                    case ${overwriteSshKeyFile} in
-                         [Yy])
-                            if [ -z "${email}" ]; then
-                                read -p "Type in your email address" email
-                                ssh-keygen -t ed25519 -C "${email}"
-                            fi
-                        ;;
-                        *)
-                            echo "File not overwritten, here's your unchanged hash:"
-                            echo "Copy and paste this hash onto the 'SSH and GPG keys' settings menu:"
-                            $(cat "$HOME/.ssh/id_ed25519")
-                        ;;
-                    esac
+                    echo "ERROR: $HOME/.ssh/id_ed25519: File already exists"
             fi
             exit
         ;;
-        
+
+        --delete-ssh-key)
+            if [ -f "$HOME/.ssh/id_ed25519" ]; then
+                rm -v $HOME/.ssh/id_ed25519*
+                else
+                    echo "ERROR: There is nothing to delete"
+            fi
+        ;;
+
         --status|-S)
             git status $(pwd)
             exit
         ;;
-        
+
         --commit|-C)
             git add .
             if [ -z "${commitMessage}" ]; then
@@ -103,15 +98,24 @@ while [ $# -gt 0 ]; do
             git pull
             exit
         ;;
-        
+
         --push|-p)
             git push
             git push --tags
         ;;
 
+        --add|-A)
+            shift
+            if [ ! -z "${1}" ]; then
+                git add "${1}"
+                else
+                    git add .
+            fi
+        ;;
+
         --add-tag|-a)
             shift
-            if [ -z "${labelName}" ] && [-z "${labelMessage}" ]; then
+            if [ -z "${labelName}" ] && [ -z "${labelMessage}" ]; then
                 read -p "How the label should be named?: " labelName
                 read -p "Type a message for the label: " labelMessage
                 git tag -a "${labelName}" -m "${labelMessage}"
