@@ -1,0 +1,150 @@
+#!/usr/bin/sh
+
+#
+# A git helper script
+# Made by Ken Hoo (mrkenhoo)
+# git-mrkenhoo file
+#
+
+set -e
+
+help() {
+    cat <<EOF
+Usage: ${0} [OPTIONS]
+
+Available options are:
+    --create-ssh-key    Creates an SSH key for GitHub private repositories authentication
+    --status,-S         Shows the current status of the repository
+    --commit,-C         Adds all the new modified files on the repository and then commits the changes
+    --pull,-P           Fetches the latest changes from the repository
+    --clone,-c          Clones the specified repository (on private repositories it requires a verified SSH-key)
+    --push,-P           Pushes the latest local commit to the repository
+    --add,-A            Adds specified file(s) to be commited
+    --add-tag,-a        Adds a label to the commit
+    --delete-tag,-d     Deletes a label from the commit
+    --show-tags,-s      Shows tags from current repository (if any)
+    --help,-h           Shows this help message
+
+EOF
+}
+
+if [ -z ${1} ]; then
+    echo ""; echo "Nothing to do!"; echo ""; help
+fi
+
+if [ "${*}" = "--help" ] || [ "${*}" = "-h" ]; then
+   echo ""; help
+fi
+
+while [ $# -gt 0 ]; do
+    case "${1}" in
+        --create-ssh-key)
+            if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
+                if [ -z "${email}" ]; then
+                    read -p "Type in your email address: " email
+                    echo "Press enter when prompted to save the file into the default directory"
+                    ssh-keygen -t ed25519 -C "${email}"
+                    else
+                        echo "Press enter when prompted to save the file into the default directory"
+                        ssh-keygen -t ed25519 -C "${email}"
+                fi
+                printf "\nHere's your public SSH key:\n\n$(cat "$HOME/.ssh/id_ed25519.pub")\n\n"
+                else
+                    echo "ERROR: $HOME/.ssh/id_ed25519: File already exists"
+            fi
+            exit
+        ;;
+
+        --delete-ssh-key)
+            if [ -f "$HOME/.ssh/id_ed25519" ]; then
+                rm -v $HOME/.ssh/id_ed25519*
+                else
+                    echo "ERROR: There is nothing to delete"
+            fi
+        ;;
+
+        --status|-S)
+            git status $(pwd)
+            exit
+        ;;
+
+        --commit|-C)
+            git add .
+            if [ -z "${commitMessage}" ]; then
+                read -p "Type the message for this commit: " commitMessage
+                echo git commit -m "${commitMessage}"
+                git commit -m "${commitMessage}"
+                else
+                    echo git commit -m "${commitMessage}"
+                    git commit -m "${commitMessage}"
+            fi
+            git push --tags
+            git push
+            exit
+        ;;
+
+        --clone|-c)
+            shift
+            if [ ! -z "${1}" ]; then
+                git clone git@github.com:mrkenhoo/"${1}"
+                else
+                    echo "Please specify a repository to clone it"
+                    exit 0
+            fi
+            exit
+        ;;
+
+        --pull|-P)
+            git pull
+            exit
+        ;;
+
+        --push|-p)
+            git push
+            git push --tags
+        ;;
+
+        --add|-A)
+            shift
+            if [ ! -z "${1}" ]; then
+                git add "${1}"
+                else
+                    git add .
+            fi
+        ;;
+
+        --add-tag|-a)
+            shift
+            if [ -z "${labelName}" ] && [ -z "${labelMessage}" ]; then
+                read -p "How the label should be named?: " labelName
+                read -p "Type a message for the label: " labelMessage
+                git tag -a "${labelName}" -m "${labelMessage}"
+                else
+                    git tag -a "${labelName}" -m "${labelMessage}"
+            fi
+            exit
+        ;;
+
+        --delete-tag|-d)
+            shift
+            if [ -z "${labelName}" ]; then
+                read -p "Type the label to delete: " labelName
+                git tag -d "${labelName}"
+                else
+                    git tag -d "${labelName}"
+            fi
+            exit
+        ;;
+
+        --show-tags|-s)
+            git tag
+            exit
+        ;;
+
+        *)
+            shift
+            echo "ERROR: ${1}: Invalid or unknown command"
+        ;;
+    esac
+    shift > /dev/null 2>&1
+done
