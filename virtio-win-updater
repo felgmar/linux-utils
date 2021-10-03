@@ -5,7 +5,7 @@ help() {
     --help,-h		Displays this message
 }
 
-if [ ${*} = "--help" ] || [ "${*}" = "-h" ]; then
+if [ "${*}" = "--help" ] || [ "${*}" = "-h" ]; then
     help
 fi
 
