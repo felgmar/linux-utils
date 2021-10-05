@@ -2,20 +2,20 @@
 
 #
 # Liam Powell's Linux kernel download tool
-# Created and developed by Liam Powell (gfelipe099)
+# Created and developed by Ken Hoo (mrkenhoo)
 # lp-lkdt file
-# For Debian GNU/Linux 10 (buster) amd64
+# For Debian GNU/Linux 11 (bullseye) amd64
 #
 
 pkgs="sudo dwarves flex bison fakeroot libssl-dev libelf-dev bc rsync build-essential"
 kernelBranch="v5.x"
-linuxVersion="5.4.129"
+linuxVersion="5.10.70"
 downloadUrl="https://mirrors.edge.kernel.org/pub/linux/kernel/${kernelBranch}/linux-${linuxVersion}.tar.gz"
 mainDir="/root/.cache/lp-lkdt/"
 srcDir="/root/.cache/lp-lkdt/src/"
 debDir="/root/.cache/lp-lkdt/deb/"
 
-if [ "$(whoami)" != root ]; then
+if [ "$(whoami)" != "root" ]; then
     echo "--> You must execute this script as root."
     exit
 fi
@@ -29,11 +29,11 @@ clear
 echo "Please wait..."
 apt-get install -yy figlet > /dev/null 2>&1
 clear
-figlet -c "Liam Powell's"
-figlet -c "LKDT"
+figlet -c "Ken Hoo's"
+figlet -c "KHKDT"
 apt-get purge -yy figlet --autoremove > /dev/null 2>&1
-echo "Welcome to Liam Powell's Linux kernel download tool"
-echo "Created and developed by Liam Powell (gfelipe099)"
+echo "Welcome to Ken Hoo's Linux kernel download tool"
+echo "Created and developed by Ken Hoo (mrkenhoo)"
 echo "Kernel version in use: $(uname -r)" && echo ""
 
 if [ ! -d ${mainDir} ] > /dev/null 2>&1; then
@@ -45,7 +45,7 @@ if [ ! -d ${mainDir} ] > /dev/null 2>&1; then
         read -p "    Do you want to download and edit the config file? [yes/no]: " configPrompt && echo ""
         if [ ${configPrompt} = "yes" ]; then
             echo "--> Downloading configuration file from the repository..."
-            curl -sL https://raw.githubusercontent.com/gfelipe099/bash-utils/main/conf/lp-lkdt/main.conf.example > ${mainDir}main.conf
+            curl -sL https://raw.githubusercontent.com/mrkenhoo/bash-utils/main/conf/lp-lkdt/main.conf.example > ${mainDir}main.conf
             if [ -f ${mainDir}main.conf ]; then
                 if [ -x /usr/bin/nano ]; then
                     availableEditor="nano"
@@ -58,12 +58,12 @@ if [ ! -d ${mainDir} ] > /dev/null 2>&1; then
                 sleep 3
                 ${availableEditor} ${mainDir}main.conf
                 else
-                    echo "    No config file will downloaded neither used"
+                    echo "    No config file will be downloaded neither used"
             fi
         elif [ ${configPrompt} = "no" ]; then
-            echo "    No custom config file will downloaded neither used" && echo ""
+            echo "    No custom config file will be downloaded neither used" && echo ""
             else
-                echo "    No custom config file will downloaded neither used" && echo ""
+                echo "    No custom config file will be downloaded neither used" && echo ""
         fi
     fi
 fi
@@ -78,7 +78,7 @@ if [ -d ${mainDir} ]; then
             elif [ -z ${kernelBranch} ]; then
                 kernelBranch="v5.x"
             elif [ -z ${linuxVersion} ]; then
-                linuxVersion="5.4.99"
+                linuxVersion="5.10.70"
             elif [ -z ${downloadUrl} ]; then
                 downloadUrl="https://mirrors.edge.kernel.org/pub/linux/kernel/${kernelBranch}/linux-${linuxVersion}.tar.gz"
             elif [ -z ${mainDir} ]; then
@@ -103,7 +103,7 @@ if [ ! -f /usr/bin/apt ]; then
     else
         apt-get install -yy lsb-release > /dev/null 2>&1
         os=$(lsb_release -ds | sed 's/"//g')
-        validatedOs="Debian GNU/Linux 10 (buster)"
+        validatedOs="Debian GNU/Linux 11 (bullseye)"
 fi
 if [ "${os}" != "${validatedOs}" ]; then
     echo "--> You must be using ${validatedOs} to execute this script."

@@ -19,7 +19,7 @@ Available options are:
     --pull,-P           	Fetches the latest changes from the repository
     --clone-repository,-c	Clones the specified repository (on private repositories it requires a verified SSH-key)
       --branch,-b          	Specifies a branch where to clone from, on the repository
-    --push,-P           	Pushes the latest local commit to the repository
+    --push,-p           	Pushes the latest local commit to the repository
     --add,-A            	Adds specified file(s) to be commited
     --add-tag,-a        	Adds a label to the commit
     --delete-tag,-d     	Deletes a label from the commit
