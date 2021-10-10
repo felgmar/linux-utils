@@ -13,18 +13,18 @@ help() {
 Usage: ${0} [OPTIONS]
 
 Available options are:
-    --create-ssh-key    	Creates an SSH key for GitHub private repositories authentication
-    --status,-S         	Shows the current status of the repository
-    --commit,-C         	Adds all the new modified files on the repository and then commits the changes
-    --pull,-P           	Fetches the latest changes from the repository
-    --clone-repository,-c	Clones the specified repository (on private repositories it requires a verified SSH-key)
-      --branch,-b          	Specifies a branch where to clone from, on the repository
-    --push,-p           	Pushes the latest local commit to the repository
-    --add,-A            	Adds specified file(s) to be commited
-    --add-tag,-a        	Adds a label to the commit
-    --delete-tag,-d     	Deletes a label from the commit
-    --show-tags,-s      Shows tags from current repository (if any)
-    --help,-h           Shows this help message
+    --create-ssh-key        Creates an SSH key for GitHub private repositories authentication
+    --status,-S             Shows the current status of the repository
+    --commit,-C             Adds all the new modified files on the repository and then commits the changes
+    --pull,-P               Fetches the latest changes from the repository
+    --clone-repository,-c   Clones the specified repository (on private repositories it requires a verified SSH-key)
+      --branch,-b           Specifies a branch where to clone from, on the repository
+    --push,-p               Pushes the latest local commit to the repository
+    --add,-A                Adds specified file(s) to be commited
+    --add-tag,-a            Adds a label to the commit
+    --delete-tag,-d         Deletes a label from the commit
+    --show-tags,-s          Shows tags from current repository (if any)
+    --help,-h               Shows this help message
 
 EOF
 }
