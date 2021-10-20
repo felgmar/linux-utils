@@ -1,8 +1,10 @@
 #!/usr/bin/sh
 
 help() {
-    --download-dir,-d	Specifies the directory to where the ISOs will be downloaded to
-    --help,-h		Displays this message
+    printf "\nUsage: ${0} [OPTIONS]
+
+--download-dir,-d   Specifies the directory to where the ISOs will be downloaded to
+--help,-h           Displays this message\n\n"
 }
 
 if [ "${*}" = "--help" ] || [ "${*}" = "-h" ]; then
@@ -15,6 +17,7 @@ while [ $# -gt 0 ]; do
             shift
             downloadDir="${1}"
         ;;
+
         *)
             help
         ;;
@@ -22,7 +25,7 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-if [ -z ${downloadDir} ]; then
+if [ -z "${downloadDir}" ]; then
     echo "No download directory was specified"
     exit
 fi
