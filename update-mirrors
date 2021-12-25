@@ -1,20 +1,38 @@
 #!/bin/sh
+set -e
 
-update-mirrors() {
-    if [ ! -f /usr/bin/reflector ] || [ ! -f /usr/bin/sudo ]; then
-        echo ":: ERROR: reflector: unknown command"
-        echo ":: ERROR: sudo: unknown command"
-        echo "    --> Installing missing dependencies: reflector sudo..."
-        sudo pacman -S reflector --noconfirm --needed 2>/dev/null
-    fi
-    if [ -z ${country} ]; then
-        read -p ":: Specify a country [e.g. United States]: " input1
-        country=${input1}
-    fi
-    if [ -z ${sortBy} ]; then
-        read -p ":: Specify how to sort mirrors [age,rate,country,score,delay]: " input2
-        sortBy=${input2}
-    fi
-    echo ":: Updating mirrors from ${country} and sorting them by ${sortBy}, please wait..."
-    sudo reflector --country ${country} --sort ${sortBy} --save /etc/pacman.d/mirrorlist
+help() {
+    printf "\nUsage: ${0} [OPTIONS]
+
+Options:
+--country,-c    a
+--sortby,-s     a
+--help,-h       Displays this message\n\n"
 }
+
+while [ $# -gt 0 ]; do
+    case "${1}" in
+        --country|-c)
+            shift
+            country="${1}"
+        ;;
+
+        --sortby|-s)
+            shift
+            sortby="${1}"
+	;;
+
+        --help|-h)
+            help
+        ;;
+
+        *)
+            help
+        ;;
+    esac
+    shift
+done
+
+echo ":: Updating mirrors from ${country} and sorting them by ${sortby}, please wait..."
+reflector --country ${country} --sort ${sortby} --save /etc/pacman.d/mirrorlist
+

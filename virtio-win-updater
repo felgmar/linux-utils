@@ -3,19 +3,20 @@
 help() {
     printf "\nUsage: ${0} [OPTIONS]
 
---download-dir,-d   Specifies the directory to where the ISOs will be downloaded to
---help,-h           Displays this message\n\n"
+Options:
+    --download-dir,-d   Specifies the directory to where the ISOs will be downloaded to
+    --help,-h           Displays this message\n\n"
 }
-
-if [ "${*}" = "--help" ] || [ "${*}" = "-h" ]; then
-    help
-fi
 
 while [ $# -gt 0 ]; do
     case "${1}" in
         --download-dir|-d)
             shift
             downloadDir="${1}"
+        ;;
+        
+        --help|-h)
+            help
         ;;
 
         *)
@@ -26,23 +27,27 @@ while [ $# -gt 0 ]; do
 done
 
 if [ -z "${downloadDir}" ]; then
-    echo "No download directory was specified"
+    help
     exit
 fi
 
 if [ -x "/usr/bin/curl" ]; then
-    echo "==> Removing old ISO images (if any)..."
+    echo "==> Removing old ISO images..."
     for f in ${downloadDir}/*.iso; do
-	rm -v "${f}"
+    	rm -v "${f}"
     done
     echo ""; echo "==> Fetching the latest virtio-win ISO..."
     curl -L https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso > ${downloadDir}/virtio-stable.iso
-    if [ -f "${downloadDir}/rtio-stable.iso" ]; then
+    if [ -f "${downloadDir}/virtio-stable.iso" ]; then
         echo "    --> Download successful"; echo ""
     fi
-    echo "==> Fetching the stable virtio-win ISO..."
+
+    echo ""; echo "==> Fetching the stable virtio-win ISO..."
     curl -L https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso > ${downloadDir}/virtio-latest.iso
     if [ -f "${downloadDir}/virtio-latest.iso" ]; then
         echo "    --> Download successful"; echo ""
     fi
+    else
+        echo ":: ERROR: curl: command not found"
+        exit 1
 fi

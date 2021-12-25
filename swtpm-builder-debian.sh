@@ -111,12 +111,12 @@ exit 0' > /etc/init.d/trousers
 
 install() {
     if [ ! -f libtpms0_0.8.2-1_amd64.deb ]; then
-        echo "Fetching package libtpms0_0.8.2-1_amd64.deb..."
+        echo "Fetching package: libtpms0_0.8.2-1_amd64.deb..."
         curl -sL http://ftp.us.debian.org/debian/pool/main/libt/libtpms/libtpms0_0.8.2-1_amd64.deb > libtpms0_0.8.2-1_amd64.deb
     fi
 
     if [ ! -f libtpms-dev_0.8.2-1_amd64.deb ]; then
-        echo "Fetching package libtpms-dev_0.8.2-1_amd64.deb..."
+        echo "Fetching package: libtpms-dev_0.8.2-1_amd64.deb..."
         curl -sL http://ftp.us.debian.org/debian/pool/main/libt/libtpms/libtpms-dev_0.8.2-1_amd64.deb > libtpms-dev_0.8.2-1_amd64.deb
     fi
 
@@ -128,8 +128,8 @@ install() {
         libseccomp-dev automake autoconf libtool gcc libssl-dev dh-exec \
         pkg-config dh-autoreconf net-tools gawk > /dev/null 2>&1
 
-        sudo gdebi -q libtpms-dev_0.8.2-1_amd64.deb
-        sudo gdebi -q libtpms0_0.8.2-1_amd64.deb
+        gdebi -n -q libtpms0_0.8.2-1_amd64.deb
+        gdebi -n -q libtpms-dev_0.8.2-1_amd64.deb
     fi
 }
 
@@ -140,7 +140,7 @@ uninstall() {
         libgmp-dev expect libtasn1-dev socat tpm-tools python3-twisted \
         gnutls-dev gnutls-bin libjson-glib-dev python3-setuptools softhsm2 \
         libseccomp-dev automake autoconf libtool gcc libssl-dev dh-exec \
-        dh-autoreconf libtpms-dev libtpms0 net-tools gawk  > /dev/null 2>&1
+        dh-autoreconf libtpms-dev libtpms0 net-tools gawk > /dev/null 2>&1
     fi
 }
 
@@ -163,11 +163,11 @@ build() {
 
 setup() {
     if [ -d "/var/lib/swtpm-localca" ]; then
-        chown -R tss:tss /var/lib/swtpm-localca
-        chmod -R 755 /var/lib/swtpm-localca
         if [ -x /usr/bin/swtpm_setup ]; then
             swtpm_setup --tpm2 --tpm-state /var/lib/swtpm-localca
         fi
+        chown -R tss:tss /var/lib/swtpm-localca
+        chmod -R 755 /var/lib/swtpm-localca
     fi
 }
 

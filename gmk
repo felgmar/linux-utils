@@ -3,7 +3,7 @@
 #
 # A git helper script
 # Made by Ken Hoo (mrkenhoo)
-# git-mrkenhoo file
+# gmk file
 #
 
 set -e

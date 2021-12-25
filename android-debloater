@@ -1,122 +1,78 @@
-#!/bin/bash
+#!/bin/sh
 
 #
-# Created by Liam Powell (gfelipe099)
+# Created by Ken Hoo (mrkenhoo)
 # Android debloater tool
 # android-debloater file
 # for Android 8.0 Oreo or higher
 #
+set -e
 
-debloat() {
-    bash -c '. ~/.config/android-debloater/pkgs.conf; android_user=$(adb shell cmd activity get-current-user) uninstall; exit'
+uninstall_packages() {
+    [ ! . "${HOME}/.config/android-debloater/pkgs.conf" ] && . "${HOME}/.config/android-debloater/pkgs.conf" && \
+                                                            android_user=$(adb shell cmd activity get-current-user)
+    for p in "${pkgs[@]}"; do
+        printf "\nRemoving package: ${p}... "
+        adb shell pm uninstall --user "${android_user}" "${p}"
+    done
 }
 
-usage() {
-    cat << EOF
+check_packages() {
+    for p in "${pkgs[@]}"; do
+        echo "Found package: ${p}"
+    done
+}
 
-Usage: android-debloater [OPTIONS]
+help() {
+    printf "Usage: ${0} [OPTIONS]
 
-Use any of these options:
+Options:
 --start,-s            Begins debloating of Android devices
 --check-packages,-c   Checks which packages are available for debloating
---help,-h             Prints this help
-
-EOF
+--help,-h             Prints this help\n"
 }
 
-checkDependencies() {
-    @adb version > /dev/null 2>&1 || (printf "ERROR: adb: command not found\nInstall adb to continue.\n"; exit 1)
-}
-
-#
-# first of all, check if running as root
-#
 if [ "$(whoami)" = "root" ]; then
-    echo "This script does not support root user." && echo ""
+    echo "Do not execute this script as root"
     exit 0
 fi
 
-if [ -z "$1" ]; then
-    echo ":: ERROR: Missing required argument"
-    usage
-    exit
-fi
+[ -z "${1}" ] && help
 
-case "$@" in 
-    --help|-h)
-        usage
-    ;;
-
-    --start|-s)
-        checkDependencies
-        debloat
-    ;;
-    --check-packages|-c)
-        checkDependencies
-        if [ -f ~/.config/android-debloater/pkgs.conf ]; then
-            bash -c '. ~/.config/android-debloater/pkgs.conf; check-packages; exit'
+while [ $# -gt 0 ]; do
+    case "${1}" in 
+        --start|-s)
+            uninstall_packages
+        ;;
+        --check-packages|-c)
+            [ ! -d "${HOME}/.config/android-debloater" ] && mkdir "${HOME}/.config/android-debloater"
+            if [ -f "${HOME}/.config/android-debloater/pkgs.conf" ]; then
+                check_packages
             else
-                echo ":: ERROR: ~/.config/android-debloater/pkgs.conf: No such file or directory"
-                read -p ":: Do you want to obtain this file online? <Y/n> " input
-                if [ -z ${input} ]; then
-                    echo "    --> File not downloaded"
-                    exit
-                elif [ ${input} = "Y" ]; then
-                    echo "    --> Downloading file..."
-                    if [ -f /usr/bin/curl ]; then
-                        if [ ! -d ~/.config/android-debloater/ ]; then
-                            mkdir -p ~/.config/android-debloater/
+                echo ":: ERROR: ${HOME}/.config/android-debloater/pkgs.conf: No such file or directory"
+                read -p "  ==> Do you want to download it? [Y/n]: " input
+                case "${input}" in
+                    Y|y|Yes|yes)
+                        if [ -x "$(command -v curl)" ]; then
+                            curl -sL "https://raw.githubusercontent.com/mrkenhoo/linux-utils/main/conf/android-debloater/pkgs.conf" > "${HOME}/.config/android-debloater/pkgs.conf"
+                        elif ["$(command -v wget)" ]; then
+                            wget -q "https://raw.githubusercontent.com/mrkenhoo/linux-utils/main/conf/android-debloater/pkgs.conf" -O "${HOME}/.config/android-debloater/pkgs.conf"
+                            else
+                                echo ":: ERROR: Could not download file: curl or wget was not found"
                         fi
-                        curl -sL https://raw.githubusercontent.com/gfelipe099/bash-utils/main/conf/android-debloater/pkgs.conf > ~/.config/android-debloater/pkgs.conf
-                    fi
-                    if [ -f /usr/bin/wget ]; then
-                        if [ ! -d ~/.config/android-debloater/ ]; then
-                            mkdir -p ~/.config/android-debloater/
-                        fi
-                        wget -q https://raw.githubusercontent.com/gfelipe099/bash-utils/main/conf/android-debloater/pkgs.conf -O ~/.config/android-debloater/pkgs.conf
-                    fi
-                elif [ ${input} = "y" ]; then
-                    echo "    --> Downloading file..."
-                    if [ -f /usr/bin/curl ]; then
-                        if [ ! -d ~/.config/android-debloater/ ]; then
-                            mkdir -p ~/.config/android-debloater/
-                        fi
-                        curl -sL https://raw.githubusercontent.com/gfelipe099/bash-utils/main/conf/android-debloater/pkgs.conf > ~/.config/android-debloater/pkgs.conf
-                    fi
-                    if [ -f /usr/bin/wget ]; then
-                        if [ ! -d ~/.config/android-debloater/ ]; then
-                            mkdir -p ~/.config/android-debloater/
-                        fi
-                        wget -q https://raw.githubusercontent.com/gfelipe099/bash-utils/main/conf/android-debloater/pkgs.conf -O ~/.config/android-debloater/pkgs.conf
-                    fi
-                elif [ ${input} = "yes" ]; then
-                    echo "    --> Downloading file..."
-                    if [ -f /usr/bin/curl ]; then
-                        if [ ! -d ~/.config/android-debloater/ ]; then
-                            mkdir -p ~/.config/android-debloater/
-                        fi
-                        curl -sL https://raw.githubusercontent.com/gfelipe099/bash-utils/main/conf/android-debloater/pkgs.conf > ~/.config/android-debloater/pkgs.conf
-                    fi
-                    if [ -f /usr/bin/wget ]; then
-                        if [ ! -d ~/.config/android-debloater/ ]; then
-                            mkdir -p ~/.config/android-debloater/
-                        fi
-                        wget -q https://raw.githubusercontent.com/gfelipe099/bash-utils/main/conf/android-debloater/pkgs.conf -O ~/.config/android-debloater/pkgs.conf
-                    fi
-                    sleep 2
-                    bash -c '. ~/.config/android-debloater/pkgs.conf; check-packages; exit'
-                    else
-                        if [ ${input} = "N" ]; then
-                            echo "   --> File not downloaded"
-                            exit
-                        elif [ ${input} = "n" ]; then
-                            echo "   --> File not downloaded"
-                            exit
-                        elif [ ${input} = "no" ]; then
-                            echo "   --> File not downloaded"
-                            exit
-                        fi
-                fi
-        fi
-    ;;
-esac
+                        check_packages
+                    ;;
+                esac
+            fi
+        ;;
+
+        --help|-h)
+            help
+        ;;
+
+        *)
+            help
+        ;;
+    esac
+    shift
+done
