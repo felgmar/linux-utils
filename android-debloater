@@ -55,7 +55,7 @@ while [ $# -gt 0 ]; do
                     Y|y|Yes|yes)
                         if [ -x "$(command -v curl)" ]; then
                             curl -sL "https://raw.githubusercontent.com/mrkenhoo/linux-utils/main/conf/android-debloater/pkgs.conf" > "${HOME}/.config/android-debloater/pkgs.conf"
-                        elif ["$(command -v wget)" ]; then
+                        elif [ "$(command -v wget)" ]; then
                             wget -q "https://raw.githubusercontent.com/mrkenhoo/linux-utils/main/conf/android-debloater/pkgs.conf" -O "${HOME}/.config/android-debloater/pkgs.conf"
                             else
                                 echo ":: ERROR: Could not download file: curl or wget was not found"
