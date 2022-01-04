@@ -18,9 +18,11 @@ Available options are:
     --commit,-C             Adds all the new modified files on the repository and then commits the changes
     --pull,-P               Fetches the latest changes from the repository
     --clone-repository,-c   Clones the specified repository (on private repositories it requires a verified SSH-key)
-      --branch,-b           Specifies a branch where to clone from, on the repository
+      --branch,-b           Sets the branch to clone from the repository
     --push,-p               Pushes the latest local commit to the repository
     --add,-A                Adds specified file(s) to be commited
+      --label-name          Sets the label name for the tag
+      --label-message       Sets the label message for the tag
     --add-tag,-a            Adds a label to the commit
     --delete-tag,-d         Deletes a label from the commit
     --show-tags,-s          Shows tags from current repository (if any)
@@ -29,12 +31,8 @@ Available options are:
 EOF
 }
 
-if [ -z ${1} ]; then
-    echo ""; echo "Nothing to do!"; echo ""; help
-fi
-
-if [ "${*}" = "--help" ] || [ "${*}" = "-h" ]; then
-   echo ""; help
+if [ -z "${1}" ]; then
+    help
 fi
 
 while [ $# -gt 0 ]; do
@@ -45,42 +43,36 @@ while [ $# -gt 0 ]; do
                     read -p "Type in your email address: " email
                     echo "Press enter when prompted to save the file into the default directory"
                     ssh-keygen -t ed25519 -C "${email}"
-                    else
-                        echo "Press enter when prompted to save the file into the default directory"
-                        ssh-keygen -t ed25519 -C "${email}"
+                else
+                    echo "Press enter when prompted to save the file into the default directory"
+                    ssh-keygen -t ed25519 -C "${email}"
                 fi
                 printf "\nHere's your public SSH key:\n\n$(cat "$HOME/.ssh/id_ed25519.pub")\n\n"
-                else
-                    echo "ERROR: $HOME/.ssh/id_ed25519: File already exists"
+            else
+                echo "ERROR: $HOME/.ssh/id_ed25519: File already exists"
             fi
             exit
         ;;
 
         --delete-ssh-key)
             if [ -f "$HOME/.ssh/id_ed25519" ]; then
-                rm -v $HOME/.ssh/id_ed25519*
-                else
-                    echo "ERROR: There is nothing to delete"
+                rm -v "$HOME/.ssh/id_ed25519*"
+            else
+                echo "ERROR: There is nothing to delete"
             fi
         ;;
 
         --status|-S)
-            git status $(pwd)
+            git status .
             exit
         ;;
 
         --commit|-C)
+            shift
+            [ -z "${1}" ] && echo "No commit message provided" && exit
             git add .
-            if [ -z "${commitMessage}" ]; then
-                read -p "Type the message for this commit: " commitMessage
-                echo git commit -m "${commitMessage}"
-                git commit -m "${commitMessage}"
-                else
-                    echo git commit -m "${commitMessage}"
-                    git commit -m "${commitMessage}"
-            fi
+            git commit -m "${1}"
             git push
-            git push --tags
             exit
         ;;
 
@@ -92,7 +84,7 @@ while [ $# -gt 0 ]; do
                 case "${1}" in
                     --branch|-b)
                         shift
-                        branch="${1}"
+                        export branch="${1}"
                     ;;
 
                     *)
@@ -102,10 +94,10 @@ while [ $# -gt 0 ]; do
                 shift > /dev/null 2>&1
             done
             if [ ! -z "${branch}" ]; then
-                git clone git@github.com:mrkenhoo/"${repository}" -b "${branch}"
-                else
-                    echo "Please specify a repository and a branch and try again"
-                    exit 0
+                git clone git@github.com:${user_name}/"${repository}" -b "${branch}"
+            else
+                echo "Please specify a repository and a branch and try again"
+                exit
             fi
             exit
         ;;
@@ -118,37 +110,51 @@ while [ $# -gt 0 ]; do
         --push|-p)
             git push
             git push --tags
+            exit
         ;;
 
         --add|-A)
             shift
-            if [ ! -z "${1}" ]; then
-                git add "${1}"
-                else
-                    git add .
-            fi
+            git add .
+            exit
         ;;
 
         --add-tag|-a)
             shift
-            if [ -z "${labelName}" ] && [ -z "${labelMessage}" ]; then
-                read -p "How the label should be named?: " labelName
-                read -p "Type a message for the label: " labelMessage
-                git tag -a "${labelName}" -m "${labelMessage}"
-                else
-                    git tag -a "${labelName}" -m "${labelMessage}"
+            while [ $# -gt 0 ]; do
+                case "${1}" in
+                    --label-name|-l)
+                        shift
+                        export label_name="${1}"
+                    ;;
+
+                    --label-message|-L)
+                        shift
+                        export label_message="${1}"
+                    ;;
+
+                    --help|-h)
+                        help
+                    ;;
+
+                    *)
+                        help
+                    ;;
+                esac
+                shift
+            done
+            if [ ! -z "${label_name}" ] && [ ! -z "${label_message}" ]; then
+                git tag -a "${label_name}" "${label_message}"
+            else
+                echo "No label name and message were provided"
             fi
             exit
         ;;
 
         --delete-tag|-d)
             shift
-            if [ -z "${labelName}" ]; then
-                read -p "Type the label to delete: " labelName
-                git tag -d "${labelName}"
-                else
-                    git tag -d "${labelName}"
-            fi
+            [ ! -z "${label_name}" ] && git tag -d "${label_name}"
+            echo "No label name was provided"
             exit
         ;;
 
@@ -157,9 +163,15 @@ while [ $# -gt 0 ]; do
             exit
         ;;
 
+        --username)
+            shift
+            export user_name="${1}"
+        ;;
+
         *)
             shift
-            echo "ERROR: ${1}: Invalid or unknown command"
+            [ ! -z "${1}" ] && echo "ERROR: ${1}: Invalid or unknown command" || \
+                echo "ERROR: No command provided"
         ;;
     esac
     shift > /dev/null 2>&1
