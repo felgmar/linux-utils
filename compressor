@@ -8,7 +8,7 @@ fi
 
 help() {
     printf "\nUsage: ${0} [OPTIONS]
-    
+
 Options:
     --create-tar-file,-c        <fileName or directoryName>     Creates a tar file
     --create-gzip-tar-file,-C   <fileName or directoryName>     Creates a gzip compressed tar file
@@ -35,7 +35,7 @@ while [ $# -gt 0 ]; do
                     exit 1
             fi
         ;;
-        
+
         --create-gzip-tar-file|-C)
             shift
             [ -z "${1}" ] && echo "No file or directory was specified" && exit 1
@@ -50,14 +50,14 @@ while [ $# -gt 0 ]; do
                 tar -zcf "${1}.tar.gz" "${1}.tar"
             fi
         ;;
-        
+
         --clean)
             shift
             [ -z "${1}" ] && echo "No file was specified" && exit 1
             for i in ${1}.tar; do
                 [ -f "${i}" ] && rm -v "${i}"
             done
-            
+
             for i in ${1}.tar.gz; do
                 [ -f "${i}" ] && rm -v "${i}"
             done
