@@ -21,9 +21,9 @@ Available options are:
       --branch,-b           Sets the branch to clone from the repository
     --push,-p               Pushes the latest local commit to the repository
     --add,-A                Adds specified file(s) to be commited
+    --add-tag,-a            Adds a label to the commit
       --label-name          Sets the label name for the tag
       --label-message       Sets the label message for the tag
-    --add-tag,-a            Adds a label to the commit
     --delete-tag,-d         Deletes a label from the commit
     --show-tags,-s          Shows tags from current repository (if any)
     --help,-h               Shows this help message
@@ -144,7 +144,7 @@ while [ $# -gt 0 ]; do
                 shift
             done
             if [ ! -z "${label_name}" ] && [ ! -z "${label_message}" ]; then
-                git tag -a "${label_name}" "${label_message}"
+                git tag -a "${label_name}" -m "${label_message}"
             else
                 echo "No label name and message were provided"
             fi
