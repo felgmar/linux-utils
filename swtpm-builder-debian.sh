@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Created by Liam Powell (gfelipe099)
+# Created by Ken Hoo (mrkenhoo)
 # swtpm-builder file
 # For Debian GNU/Linux 11 (bullseye) amd64
 #
@@ -110,14 +110,14 @@ exit 0' > /etc/init.d/trousers
 }
 
 install() {
-    if [ ! -f libtpms0_0.8.2-1_amd64.deb ]; then
-        echo "Fetching package: libtpms0_0.8.2-1_amd64.deb..."
-        curl -sL http://ftp.us.debian.org/debian/pool/main/libt/libtpms/libtpms0_0.8.2-1_amd64.deb > libtpms0_0.8.2-1_amd64.deb
+    if [ ! -f libtpms0_0.9.2-2_amd64.deb ]; then
+        echo "Fetching package: libtpms0_0.9.2-2_amd64.deb..."
+        curl -sL http://ftp.us.debian.org/debian/pool/main/libt/libtpms/libtpms0_0.9.2-2_amd64.deb > libtpms0_0.9.2-2_amd64.deb
     fi
 
-    if [ ! -f libtpms-dev_0.8.2-1_amd64.deb ]; then
-        echo "Fetching package: libtpms-dev_0.8.2-1_amd64.deb..."
-        curl -sL http://ftp.us.debian.org/debian/pool/main/libt/libtpms/libtpms-dev_0.8.2-1_amd64.deb > libtpms-dev_0.8.2-1_amd64.deb
+    if [ ! -f libtpms-dev_0.9.2-2_amd64.deb ]; then
+        echo "Fetching package: libtpms-dev_0.9.2-2_amd64.deb..."
+        curl -sL http://ftp.us.debian.org/debian/pool/main/libt/libtpms/libtpms-dev_0.9.2-2_amd64.deb > libtpms-dev_0.9.2-2_amd64.deb
     fi
 
     echo "==> Installing dependencies..."
@@ -128,8 +128,8 @@ install() {
         libseccomp-dev automake autoconf libtool gcc libssl-dev dh-exec \
         pkg-config dh-autoreconf net-tools gawk > /dev/null 2>&1
 
-        gdebi -n -q libtpms0_0.8.2-1_amd64.deb
-        gdebi -n -q libtpms-dev_0.8.2-1_amd64.deb
+        gdebi -n -q libtpms0_0.9.2-2_amd64.deb
+        gdebi -n -q libtpms-dev_0.9.2-2_amd64.deb
     fi
 }
 
