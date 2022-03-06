@@ -35,23 +35,21 @@ welcome() {
     figlet -c "Arch Linux"
     figlet -c "SBCT"
     pacman -Rncsd figlet --noconfirm > /dev/null 2>&1
-    printf "\n\nWelcome to Arch Linux SBCT!\nKernel version: $(uname -r)\n"
+    printf "\n\nWelcome to Arch Linux SBCT!\nKernel version: `uname -r`\n"
 }
 
 root() {
-    dependencies="sbctl"
-    if [ ! -x "/usr/bin/sbctl" ]; then
-        echo ":: Installing package: '${dependencies}'..."
-        pacman -S "${dependencies}" --noconfirm --needed > /dev/null 2>&1
+    dependencies="preloader-signed"
+    if [ -z `pacman -Qqe | grep ${dependencies}` ]; then
+        echo "\n:: Installing package: '${dependencies}'..."
+        pacman -S "${dependencies}" --noconfirm --needed > /dev/null 2>&1 || echo "Error installing package ${dependencies}"
     fi
-    printf "\n:: Creating secure boot signing keys..."
-    sbctl create-keys > /dev/null 2>&1
-    printf "\n:: Enrolling keys to EFI..."
-    sbctl enroll-keys > /dev/null 2>&1
-    printf "\n:: Signing all enrolled files with secure boot keys..."
-    sbctl sign-all > /dev/null 2>&1
-    printf "\:: All done! Check the status below\n"
-    sbctl status; echo ""; sbctl verify
+    printf "\n:: Copying file HashTool.efi to /boot/EFI/BOOT/..." && \
+    cp /usr/share/preloader-signed/HashTool.efi /boot/EFI/BOOT/ && echo " done" && \
+    printf "\n:: Copying file systemd-bootx64.efi to /EFI/BOOT/loader.efi..." && \
+    cp /boot/EFI/systemd/systemd-bootx64.efi /boot/EFI/BOOT/loader.efi && echo " done" && \
+    printf "\n:: Copying file PreLoader.efi to /boot/EFI/BOOT/BOOTx64.efi..." && \
+    cp /usr/share/preloader-signed/PreLoader.efi /boot/EFI/BOOT/BOOTx64.efi && echo " done" || echo "Error"
 }
 # Initialize script functions in this order
 welcome
