@@ -6,14 +6,22 @@
 # android-debloater file
 # for Android 8.0 Oreo or higher
 #
-set -e
 
 uninstall_packages() {
-    [ ! . "${HOME}/.config/android-debloater/pkgs.conf" ] && . "${HOME}/.config/android-debloater/pkgs.conf" && \
-                                                            android_user=$(adb shell cmd activity get-current-user)
+    . "${HOME}/.config/android-debloater/pkgs.conf" && \
+        android_user=$(adb shell cmd activity get-current-user)
     for p in "${pkgs[@]}"; do
         printf "\nRemoving package: ${p}... "
         adb shell pm uninstall --user "${android_user}" "${p}"
+    done
+}
+
+reinstall_packages() {
+    . "${HOME}/.config/android-debloater/pkgs.conf" && \
+        android_user=$(adb shell cmd activity get-current-user)
+    for p in "${pkgs[@]}"; do
+        printf "\nReinstalling package: ${p}... "
+        adb shell cmd package install-existing --user "${android_user}" "${p}"
     done
 }
 
@@ -43,6 +51,9 @@ while [ $# -gt 0 ]; do
     case "${1}" in
         --start|-s)
             uninstall_packages
+        ;;
+        --reinstall-packages|-r)
+            reinstall_packages
         ;;
         --check-packages|-c)
             [ ! -d "${HOME}/.config/android-debloater" ] && mkdir "${HOME}/.config/android-debloater"
