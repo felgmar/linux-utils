@@ -40,9 +40,10 @@ welcome() {
 
 root() {
     dependencies="preloader-signed"
-    if [ -z `pacman -Qqe | grep ${dependencies}` ]; then
+    if [ -z `pacman -Qqe | grep "${dependencies}"` ]; then
         echo "\n:: Installing package: '${dependencies}'..."
-        pacman -S "${dependencies}" --noconfirm --needed > /dev/null 2>&1 || echo "Error installing package ${dependencies}"
+        yay -S "${dependencies}" --noconfirm --needed > /dev/null 2>&1 || \
+            echo "Error installing package ${dependencies}"
     fi
     printf "\n:: Copying file HashTool.efi to /boot/EFI/BOOT/..." && \
     cp /usr/share/preloader-signed/HashTool.efi /boot/EFI/BOOT/ && echo " done" && \
