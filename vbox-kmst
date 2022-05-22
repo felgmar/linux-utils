@@ -28,7 +28,7 @@ elif [ ${1} = "import-key" ]; then
     # if the certificate does not exist create it and set proper permissions
     if [ ! -f ${configDir}vbox.priv ]; then
         echo "The private keys do not exist, creating it..."
-        openssl req -new -x509 -newkey rsa:2048 -keyout ${configDir}vbox.priv -outform DER -out ${configDir}vbox.der -nodes -days 36500 -subj "/CN=VirtualBox Secure Boot Key/" 2>/dev/null
+        openssl req -new -x509 -newkey rsa:2048 -keyout ${configDir}vbox.priv -outform DER -out ${configDir}vbox.der -nodes -days 36500 -subj "/CN=VirtualBox Secure Boot Key/" > /dev/null 2>&1
         chmod 600 ${configDir}vbox.priv
         echo "Please specify a password to import the key below:"
         mokutil --import ${configDir}vbox.der
@@ -44,7 +44,7 @@ elif [ ${1} = "sign-kernel-modules" ]; then
         else
             for vboxkmodule in $(dirname $(modinfo -n vboxdrv))/*.ko; do
                 echo "Signing kernel module ${vboxkmodule}..."
-                /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ${configDir}vbox.priv ${configDir}vbox.der "${vboxkmodule}" 2>/dev/null
+                /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ${configDir}vbox.priv ${configDir}vbox.der "${vboxkmodule}" > /dev/null 2>&1
             done
     fi
     else
