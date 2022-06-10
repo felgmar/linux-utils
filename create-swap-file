@@ -26,9 +26,9 @@ create_swapfile()
     [ $? = "1" ] && exit 1
     `which chmod` 0600 "${1}"
     [ $? = "1" ] && exit 1
-    `which mkswap` -L swap "${1}"
-    [ $? = "1" ] && exit 1
     `which dd` if=/dev/zero of="${1}" bs=1M
+    [ $? = "1" ] && exit 1
+    `which mkswap` -L swap "${1}"
     [ $? = "1" ] && exit 1
     `swapon` "${1}"
     [ $? = "1" ] && exit 1
