@@ -1,0 +1,48 @@
+#!/bin/sh
+
+[ "`whoami`" != "root" ] && \
+    echo "Please execute this script as root" && exit 1
+
+help()
+{
+    printf "\nUsage: ${0} [--target-file|-t] [--help|-h]\n"
+}
+
+[ $# -eq 0 ] && help && exit 0
+
+while [ $# -gt 0 ]
+do
+    case "${1}" in
+        --target-file|-t) shift; export target_file="${1}" && break;;
+        --help|-h) help && exit 0;;
+        *) help && exit 0;;
+    esac
+    shift
+done
+
+create_swapfile()
+{
+    `which truncate` -s 0 "${1}"
+    [ $? = "1" ] && exit 1
+    `which chmod` 0600 "${1}"
+    [ $? = "1" ] && exit 1
+    `which mkswap` -L swap "${1}"
+    [ $? = "1" ] && exit 1
+    `which dd` if=/dev/zero of="${1}" bs=1M
+    [ $? = "1" ] && exit 1
+    `swapon` "${1}"
+    [ $? = "1" ] && exit 1
+    printf "\n/swapfile none swap sw 0 0\n" | tee -a "/etc/fstab"
+}
+
+if [ ! -z "${target_file}" ]
+then
+    if [ ! -f "${target_file}" ]
+    then
+        create_swapfile "${target_file}"
+    else
+        echo ":: ERROR: ${target_file}: the file already exists" && exit 1
+    fi
+else
+    echo ":: ERROR: No target file was specified" && exit 1
+fi
