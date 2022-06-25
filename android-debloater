@@ -7,83 +7,114 @@
 # for Android 8.0 Oreo or higher
 #
 
-uninstall_packages() {
-    . "${HOME}/.config/android-debloater/pkgs.conf" && \
-        android_user=$(adb shell cmd activity get-current-user)
-    for p in "${pkgs[@]}"; do
-        printf "\nRemoving package: ${p}... "
-        adb shell pm uninstall --user "${android_user}" "${p}"
+main_dir="${main_dir}/"
+packages_file="${HOME}/.config/android-debloater/pkglist"
+packages_dir="`dirname ${packages_file}`"
+
+create_main_directory()
+{
+if [ ! -d "${packages_dir}" ]
+then
+    printf "\n:: Creating directory ${packages_dir}..."
+    mkdir "${packages_dir}"
+    [ $? = "0" ] && echo " done" || echo " failed" && exit 1
+fi
+}
+
+check_packages()
+{
+    [ ! -d "${main_dir}" ] && mkdir "${main_dir}"
+    if [ -f ${packages_file} ]
+    then
+        . "${packages_file}"
+        echo ":: Available packages:"
+        for p in "${pkgs[@]}"
+        do
+            echo "${p}"
+        done
+    else
+        if [ -z "${pkgs}" ]
+        then
+            echo ":: Error checking for packages. Cannot find the file ${packages_file}"
+            get_packages
+        fi
+    fi
+}
+
+uninstall_packages()
+{
+    . ${packages_file} && \
+        android_user=`adb shell cmd activity get-current-user`
+    for p in "${pkgs[@]}"
+    do
+        printf "Removing package: ${p}... "
+        adb shell pm uninstall --user "${android_user}" "${p}" > /dev/null 2>&1
+        [ $? = "0" ] && echo "done" || echo "failed"
     done
 }
 
-reinstall_packages() {
-    . "${HOME}/.config/android-debloater/pkgs.conf" && \
-        android_user=$(adb shell cmd activity get-current-user)
-    for p in "${pkgs[@]}"; do
-        printf "\nReinstalling package: ${p}... "
+reinstall_packages()
+{
+    . ${packages_file} && \
+        android_user=`adb shell cmd activity get-current-user`
+    for p in "${pkgs[@]}"
+    do
+        printf "Reinstalling package: ${p}... "
         adb shell cmd package install-existing --user "${android_user}" "${p}"
+        [ $? = "0" ] && echo "done" || echo "failed"
     done
 }
 
-check_packages() {
-    for p in "${pkgs[@]}"; do
-        echo "Found package: ${p}"
+get_packages()
+{
+    read -p "  ==> Do you want to download it? <y/n> " input
+    case "${input}" in
+        Y|y|Yes|yes)
+            if [ -x "`command -v curl`" ]; then
+                `which curl` -fsSL "https://raw.githubusercontent.com/mrkenhoo/linux-utils/main/conf/android-debloater/pkgs.conf" -o "${packages_file}"
+            elif [ -x "`command -v wget`" ]; then
+                `which wget` -q "https://raw.githubusercontent.com/mrkenhoo/linux-utils/main/conf/android-debloater/pkgs.conf" -O "${packages_file}"
+            else
+                echo ":: ERROR: Could not download file: curl or wget was not found" && exit 1
+            fi
+        ;;
+    esac
+    . "${packages_file}"
+    check_packages
+}
+
+check_dependencies()
+{
+    for deps in adb wget curl
+    do
+        [ ! -x `which ${deps}` ] && \
+        echo ":: ERROR: ${deps}: command not found" && [ $? = "1" ] && exit 1
     done
 }
 
-help() {
-    printf "Usage: ${0} [OPTIONS]
+help()
+{
+    printf "Android Debloater\n\nUsage: ${0} [--help|-h] [--start|-s] [--check-packages|-c]
 
-Options:
 --start,-s            Begins debloating of Android devices
 --check-packages,-c   Checks which packages are available for debloating
+--verbose,-v          Shows more messages
 --help,-h             Prints this help\n"
 }
 
-if [ "$(whoami)" = "root" ]; then
-    echo "Do not execute this script as root"
-    exit 0
-fi
+[ "`whoami`" = "root" ] && echo "Do not execute this script as root" && exit 0
 
 [ -z "${1}" ] && help
 
 while [ $# -gt 0 ]; do
     case "${1}" in
-        --start|-s)
-            uninstall_packages
-        ;;
-        --reinstall-packages|-r)
-            reinstall_packages
-        ;;
-        --check-packages|-c)
-            [ ! -d "${HOME}/.config/android-debloater" ] && mkdir "${HOME}/.config/android-debloater"
-            if [ -f "${HOME}/.config/android-debloater/pkgs.conf" ]; then
-                check_packages
-            else
-                echo ":: ERROR: ${HOME}/.config/android-debloater/pkgs.conf: No such file or directory"
-                read -p "  ==> Do you want to download it? [Y/n]: " input
-                case "${input}" in
-                    Y|y|Yes|yes)
-                        if [ -x "$(command -v curl)" ]; then
-                            curl -sL "https://raw.githubusercontent.com/mrkenhoo/linux-utils/main/conf/android-debloater/pkgs.conf" > "${HOME}/.config/android-debloater/pkgs.conf"
-                        elif [ -x "$(command -v wget)" ]; then
-                            wget -q "https://raw.githubusercontent.com/mrkenhoo/linux-utils/main/conf/android-debloater/pkgs.conf" -O "${HOME}/.config/android-debloater/pkgs.conf"
-                            else
-                                echo ":: ERROR: Could not download file: curl or wget was not found"
-                        fi
-                        check_packages
-                    ;;
-                esac
-            fi
-        ;;
-
-        --help|-h)
-            help
-        ;;
-
-        *)
-            help
-        ;;
+        --start|-s)                 check_dependencies && create_main_directory && uninstall_packages;;
+        --reinstall-packages|-r)    create_main_directory && reinstall_packages;;
+        --check-packages|-c)        create_main_directory && check_packages;;
+        --verbose|-v)               set -v;;
+        --help|-h)                  help;;
+        *)                          help;;
     esac
     shift
 done
+
