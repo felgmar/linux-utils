@@ -10,6 +10,8 @@ Options:
 --help,-h       Displays this message\n\n"
 }
 
+[ $# -eq 0 ] && help && exit 0
+
 while [ $# -gt 0 ]; do
     case "${1}" in
         --country|-c)
@@ -20,7 +22,7 @@ while [ $# -gt 0 ]; do
         --sortby|-s)
             shift
             sortby="${1}"
-	;;
+	    ;;
 
         --help|-h)
             help
@@ -33,6 +35,8 @@ while [ $# -gt 0 ]; do
     shift
 done
 
+[ -z $country] && exit 1
+[ -z $sortby ] && exit 1
 echo ":: Updating mirrors from ${country} and sorting them by ${sortby}, please wait..."
 reflector --country ${country} --sort ${sortby} --save /etc/pacman.d/mirrorlist
 
