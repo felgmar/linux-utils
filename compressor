@@ -1,18 +1,11 @@
 #!/bin/sh
 set -e
 
-if [ "$(whoami)" = "root" ]; then
-    echo "Do not execute this script as root"
-    exit
-fi
+[ "`whoami`" = "root" ] && echo "Do not execute this script as root" && exit 1
 
-help() {
-    printf "\nUsage: ${0} [OPTIONS]
-
-Options:
-    --create-tar-file,-c        <fileName or directoryName>     Creates a tar file
-    --create-gzip-tar-file,-C   <fileName or directoryName>     Creates a gzip compressed tar file
-    --help,-h                                                   Show this message\n\n"
+help()
+{
+    echo "Usage: ${0} [-c filename/directory|-C filename/directory] (-h|--help)"
 }
 
 [ -z "${1}" ] && help && exit
@@ -22,8 +15,10 @@ while [ $# -gt 0 ]; do
         --create-tar-file|-c)
             shift
             [ -z "${1}" ] && echo "No file or directory was specified" && exit 1
-            if [ -d "${1}" ]; then
-                if [ ! -f "${1}.tar" ]; then
+            if [ -d "${1}" ]
+            then
+                if [ ! -f "${1}.tar" ]
+                then
                     echo "Creating file: ${1}.tar..."
                     tar -cf ${1}.tar ${1}
                 else
@@ -39,13 +34,16 @@ while [ $# -gt 0 ]; do
         --create-gzip-tar-file|-C)
             shift
             [ -z "${1}" ] && echo "No file or directory was specified" && exit 1
-            if [ ! -f "${1}.tar" ]; then
+            if [ ! -f "${1}.tar" ]
+            then
                 echo "ERROR: The file ${1}.tar does not exist"
                 exit 1
-            elif [ -f "${1}.tar.gz" ]; then
+            elif [ -f "${1}.tar.gz" ]
+            then
                 echo "ERROR: The file ${1}.tar.gz already exists"
                 exit 1
-            elif [ ! -f "${1}.tar.gz" ]; then
+            elif [ ! -f "${1}.tar.gz" ]
+            then
                 echo "Creating gzip-compressed file: ${1}.tar.gz..."
                 tar -zcf "${1}.tar.gz" "${1}.tar"
             fi

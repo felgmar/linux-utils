@@ -26,17 +26,17 @@ fi
     echo "You must be using Arch Linux to execute this script." && exit 1
 
 [ -z `pacman -Qqe | grep "preloader-signed"` ] && \
-    echo "Please install this package to continue: preloader-signed"
+    echo "Please install this package to continue: preloader-signed" && exit 1
 
 printf "\n:: Copying file HashTool.efi to /boot/EFI/BOOT/... "
-cp /usr/share/preloader-signed/HashTool.efi /boot/EFI/BOOT/
+cp /usr/share/preloader-signed/HashTool.efi /boot/EFI/BOOT/ > /dev/null 2>&1
 [ $? = "0" ] && printf " done" || printf " failed"
 
 printf "\n:: Copying file systemd-bootx64.efi to /EFI/BOOT/loader.efi... "
-cp /boot/EFI/systemd/systemd-bootx64.efi /boot/EFI/BOOT/loader.efi
+cp /boot/EFI/systemd/systemd-bootx64.efi /boot/EFI/BOOT/loader.efi > /dev/null 2>&1
 [ $? = "0" ] && printf " done" || printf " failed"
 
 printf "\n:: Copying file PreLoader.efi to /boot/EFI/BOOT/BOOTx64.efi... "
-cp /usr/share/preloader-signed/PreLoader.efi /boot/EFI/BOOT/BOOTx64.efi
+cp /usr/share/preloader-signed/PreLoader.efi /boot/EFI/BOOT/BOOTx64.efi > /dev/null 2>&1
 [ $? = "0" ] && printf " done" || printf " failed"
 
