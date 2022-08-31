@@ -9,8 +9,7 @@
 set -e
 
 help() {
-    cat <<EOF
-Usage: ${0} [OPTIONS]
+    echo "Usage: ${0} [OPTIONS]
 
 Available options are:
     --create-ssh-key        Creates an SSH key for GitHub private repositories authentication
@@ -26,61 +25,72 @@ Available options are:
       --label-message       Sets the label message for the tag
     --delete-tag,-d         Deletes a label from the commit
     --show-tags,-s          Shows tags from current repository (if any)
-    --help,-h               Shows this help message
-
-EOF
+    --help,-h               Shows this help message"
+    return $?
 }
 
-if [ -z "${1}" ]; then
-    help
-fi
+[ -z "${1}" ] && help && exit $?
 
-while [ $# -gt 0 ]; do
+while [ $# -eq 1 ]
+do
     case "${1}" in
         --create-ssh-key)
-            if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
-                if [ -z "${email}" ]; then
-                    read -p "Type in your email address: " email
-                    echo "Press enter when prompted to save the file into the default directory"
-                    ssh-keygen -t ed25519 -C "${email}"
-                else
-                    echo "Press enter when prompted to save the file into the default directory"
-                    ssh-keygen -t ed25519 -C "${email}"
-                fi
-                printf "\nHere's your public SSH key:\n\n$(cat "$HOME/.ssh/id_ed25519.pub")\n\n"
+            if [ -z "${email}" ]
+            then
+                read -p "Type in your email address: " email
+                ssh-keygen -t ed25519 -C "${email}"
             else
-                echo "ERROR: $HOME/.ssh/id_ed25519: File already exists"
+                ssh-keygen -t ed25519 -C "${email}"
             fi
-            exit
+            printf "\nHere's your public SSH key:\n$(cat "$HOME/.ssh/id_ed25519.pub")\n"
+            exit $?
+        ;;
+
+        --create-gpg-key)
+            gpg --full-generate-key
+            for k in `gpg --list-secret-keys --keyid-format=long | grep sec | cut -d " " -f 4 | sed "s,.*/,,g"`
+            do
+                echo "Here's your GPG public key:"
+                gpg --armor --export $k && printf "\n\n"
+            done
+
+            echo "Use any of these commands to acknowledge git about your primary GPG key:"
+            for sk in `gpg --list-secret-keys --keyid-format=long | grep sec | cut -d " " -f 4 | sed "s,.*/,,g"`
+            do
+                echo git config --global user.signingkey $sk --replace-all
+            done
+            exit $?
         ;;
 
         --delete-ssh-key)
-            if [ -f "$HOME/.ssh/id_ed25519" ]; then
+            if [ -f "$HOME/.ssh/id_ed25519" ]
+            then
                 rm -v "$HOME/.ssh/id_ed25519*"
             else
                 echo "ERROR: There is nothing to delete"
             fi
+            exit $?
         ;;
 
         --status|-S)
-            git status .
-            exit
+            git status `pwd`
+            exit $?
         ;;
 
         --commit|-C)
             shift
-            [ -z "${1}" ] && echo "No commit message provided" && exit
+            [ -z "${1}" ] && echo "No commit message provided" && exit $?
             git add .
-            git commit -m "${1}"
+            git commit -S -m "${1}"
             git push
-            exit
+            exit $?
         ;;
 
         --clone-repository|-c)
             shift
             repository="${1}"
             shift
-            while [ $# -gt 0 ]; do
+            while [ $# -eq 1 ]; do
                 case "${1}" in
                     --branch|-b)
                         shift
@@ -91,37 +101,38 @@ while [ $# -gt 0 ]; do
                         help
                     ;;
                 esac
-                shift > /dev/null 2>&1
+                shift
             done
-            if [ ! -z "${branch}" ]; then
-                git clone git@github.com:${user_name}/"${repository}" -b "${branch}"
+            if [ -z "${username}" || -z "${branch}" ]
+            then
+                echo "Please specify a username and a branch and try again"
+                exit 1
             else
-                echo "Please specify a repository and a branch and try again"
-                exit
+                git clone git@github.com:${username}/"${repository}" -b "${branch}"
             fi
-            exit
+            exit $?
         ;;
 
         --pull|-P)
             git pull
-            exit
+            exit $?
         ;;
 
         --push|-p)
-            git push
             git push --tags
-            exit
+            exit $?
         ;;
 
         --add|-A)
             shift
             git add .
-            exit
+            exit $?
         ;;
 
         --add-tag|-a)
             shift
-            while [ $# -gt 0 ]; do
+            while [ $# -eq 1 ]
+            do
                 case "${1}" in
                     --label-name|-l)
                         shift
@@ -143,29 +154,31 @@ while [ $# -gt 0 ]; do
                 esac
                 shift
             done
-            if [ ! -z "${label_name}" ] && [ ! -z "${label_message}" ]; then
-                git tag -a "${label_name}" -m "${label_message}"
+            if [ -z "${label_name}" || -z "${label_message}" ]
+            then
+                echo "No label name or message was provided"
+                exit 1
             else
-                echo "No label name and message were provided"
+                git tag -a "${label_name}" -m "${label_message}"
             fi
-            exit
+            exit $?
         ;;
 
         --delete-tag|-d)
             shift
             [ ! -z "${label_name}" ] && git tag -d "${label_name}"
             echo "No label name was provided"
-            exit
+            exit $?
         ;;
 
         --show-tags|-s)
             git tag
-            exit
+            exit $?
         ;;
 
         --username)
-            shift
-            export user_name="${1}"
+            shift $?
+            export username="${1}"
         ;;
 
         *)
