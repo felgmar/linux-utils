@@ -6,21 +6,15 @@
 # A tool to enable Secure Boot on Arch Linux systems
 # For Arch Linux amd64
 #
+set -e
 
-#
-# check if running as root
-#
-[ "$(whoami)" != "root" ] && \
-    echo "This script must be executed as root." && exit 1
+[ "$(whoami)" = "root" ] && \
+    echo "Do not run this script as root, use sudo instead." && exit 1
 
-# Verify Arch Linux is running
-if [ ! -x /usr/bin/pacman ]; then
-    echo "Pacman Package Manager was not found in this system, execution aborted."
-    exit 1
-    else
-        pacman -S lsb-release --noconfirm --needed > /dev/null 2>&1
-        os=$(lsb_release -ds | sed 's/"//g')
-fi
+[ ! -x "`command -v lsb_release`" ] && \
+    sudo pacman -S lsb-release --noconfirm --needed
+
+os=`lsb_release -ds | sed 's,",,g'`
 
 [ "${os}" != "Arch Linux" ] && \
     echo "You must be using Arch Linux to execute this script." && exit 1
@@ -28,15 +22,8 @@ fi
 [ -z `pacman -Qqe | grep "preloader-signed"` ] && \
     echo "Please install this package to continue: preloader-signed" && exit 1
 
-printf "\n:: Copying file HashTool.efi to /boot/EFI/BOOT/... "
-cp /usr/share/preloader-signed/HashTool.efi /boot/EFI/BOOT/ > /dev/null 2>&1
-[ $? = "0" ] && printf " done" || printf " failed"
-
-printf "\n:: Copying file systemd-bootx64.efi to /EFI/BOOT/loader.efi... "
-cp /boot/EFI/systemd/systemd-bootx64.efi /boot/EFI/BOOT/loader.efi > /dev/null 2>&1
-[ $? = "0" ] && printf " done" || printf " failed"
-
-printf "\n:: Copying file PreLoader.efi to /boot/EFI/BOOT/BOOTx64.efi... "
-cp /usr/share/preloader-signed/PreLoader.efi /boot/EFI/BOOT/BOOTx64.efi > /dev/null 2>&1
-[ $? = "0" ] && printf " done" || printf " failed"
+sudo cp -v /boot/EFI/BOOT/BOOTx64.efi /boot/EFI/BOOT/BOOTx64.efi.backup
+sudo cp -v /usr/share/preloader-signed/HashTool.efi /boot/EFI/BOOT/
+sudo cp -v /boot/EFI/systemd/systemd-bootx64.efi /boot/EFI/BOOT/loader.efi
+sudo cp -v /usr/share/preloader-signed/PreLoader.efi /boot/EFI/BOOT/BOOTx64.efi
 
