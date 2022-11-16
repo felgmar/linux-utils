@@ -1,4 +1,5 @@
 #!/usr/bin/sh
+set -e
 
 help() {
     printf "\nUsage: ${0} [OPTIONS]
@@ -26,24 +27,27 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-if [ -z "${downloadDir}" ]; then
+if [ -z "${downloadDir}" ]
+then
     help
     exit
 fi
 
-if [ -x "/usr/bin/curl" ]; then
+if [ -x "/usr/bin/curl" ]
+then
     echo "==> Removing old ISO images..."
     for f in ${downloadDir}/*.iso; do
     	rm -iv "${f}"
     done
-    echo ""; echo "==> Fetching the latest virtio-win ISO..."
-    curl -L https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso > ${downloadDir}/virtio-stable.iso
-    if [ -f "${downloadDir}/virtio-stable.iso" ]; then
+    echo "==> Fetching the latest virtio-win ISO..."
+    curl -fSL https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso -o ${downloadDir}/virtio-stable.iso
+    if [ -f "${downloadDir}/virtio-stable.iso" ]
+    then
         [ $? = 0 ] && echo "    --> Download successful" || echo "    --> There was an error"
     fi
 
-    echo ""; echo "==> Fetching the stable virtio-win ISO..."
-    curl -L https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso > ${downloadDir}/virtio-latest.iso
+    echo "==> Fetching the stable virtio-win ISO..."
+    curl -L https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso -o ${downloadDir}/virtio-latest.iso
     if [ -f "${downloadDir}/virtio-latest.iso" ]; then
         [ $? = 0 ] && echo "    --> Download successful" || echo "    --> There was an error"
     fi
