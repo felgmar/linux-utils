@@ -9,7 +9,7 @@ move_package()
     adb shell pm move-package $package_name $storage_device
 }
 
-if [ -f "pkglist" ]
+if test "pkglist"
 then
     for p in `cat pkglist`
     do
@@ -17,7 +17,6 @@ then
         move_package $p $uuid
     done
 else
-    echo "Please create a pkglist file containing the packages you want to transfer"
+    echo "Please create a 'pkglist' file containing the packages you want to transfer"
     exit 1
 fi
-
