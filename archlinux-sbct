@@ -8,22 +8,35 @@
 #
 set -e
 
-[ "$(whoami)" = "root" ] && \
-    echo "Do not run this script as root, use sudo instead." && exit 1
+if test "`whoami`" != "root"
+then
+    echo "This script must be executed as root."
+    exit 1
+fi
 
-[ ! -x "`command -v lsb_release`" ] && \
-    sudo pacman -S lsb-release --noconfirm --needed
+if test ! -x "`command -v lsb_release`"
+then
+    sudo pacman -Sy lsb-release --noconfirm --needed
+fi
 
-os=`lsb_release -ds | sed 's,",,g'`
+if test "`lsb_release -ds | sed 's,",,g'`" != "Arch Linux"
+then
+    echo "You must be using Arch Linux to use this script."
+    exit 1
+fi
 
-[ "${os}" != "Arch Linux" ] && \
-    echo "You must be using Arch Linux to execute this script." && exit 1
+if test -z `pacman -Qqe | grep "preloader-signed"`
+then
+    echo "Please install this package to continue: preloader-signed"
+    exit 1
+else
+    if test ! `bootctl is-installed`
+    then
+        bootctl install --no-variables
+    fi
 
-[ -z `pacman -Qqe | grep "preloader-signed"` ] && \
-    echo "Please install this package to continue: preloader-signed" && exit 1
-
-sudo cp -v /boot/EFI/BOOT/BOOTx64.efi /boot/EFI/BOOT/BOOTx64.efi.backup
-sudo cp -v /usr/share/preloader-signed/HashTool.efi /boot/EFI/BOOT/
-sudo cp -v /boot/EFI/systemd/systemd-bootx64.efi /boot/EFI/BOOT/loader.efi
-sudo cp -v /usr/share/preloader-signed/PreLoader.efi /boot/EFI/BOOT/BOOTx64.efi
-
+    find /boot/EFI/BOOT/BOOTX64.EFI -type f -exec mv -v '{}' '{}'.backup \;
+    find /usr/share/preloader-signed/*.efi -type f -exec cp -v '{}' /boot/EFI/BOOT/ \;
+    find /boot/EFI/systemd/systemd-bootx64.efi -type f -exec cp -v '{}' /boot/EFI/BOOT/loader.efi \;
+    find /boot/EFI/BOOT/PreLoader.efi -type f -exec mv -v '{}' BOOTX64.EFI \;
+fi
