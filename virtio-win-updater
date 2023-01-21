@@ -9,7 +9,7 @@ Options:
     -h   Displays this message\n\n"
 }
 
-while getopts ':d:' arg
+while getopts 'vd:' arg
 do
     case "$arg" in
         d) download_dir="$OPTARG";;
@@ -19,28 +19,23 @@ do
     esac
 done
 
-if test -z "$download_dir"
-then
-    help
-    exit 1
-fi
+test -z "$download_dir" && help && exit 1
 
 if test -x "`command -v curl`"
 then
-    echo "==> Removing old ISO images..."
-    find ${download_dir} -type f -exec rm -iv {} \;
+    test -f $download_dir/virtio-stable.iso && test -f $download_dir/virtio-latest.iso && \
+        echo "==> Removing old ISO images..." && \
+            rm -iv ${download_dir}/virtio-stable.iso ${download_dir}/virtio-latest.iso
 
-    printf "\n==> Fetching the latest virtio-win ISO...\n"
-    curl -fSL \
-        https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso \
-        -o ${download_dir}/virtio-stable.iso
+    echo "==> Fetching the latest virtio-win ISO..."
+    curl -fSLO \
+        https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso
 
-    printf "\n==> Fetching the stable virtio-win ISO...\n"
-    curl -fSL \
-        https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso \
-        -o ${download_dir}/virtio-latest.iso
-    else
-        echo ":: ERROR: curl: command not found"
-        exit 1
+    echo "==> Fetching the stable virtio-win ISO..."
+    curl -fSLO \
+        https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso
+else
+    echo ":: ERROR: curl: command not found"
+    exit 1
 fi
 
