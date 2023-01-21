@@ -19,13 +19,13 @@ do
     esac
 done
 
-test -z "$download_dir" && help && exit 1
+test -z "$download_dir" && help && exit 1 || cd $download_dir
 
 if test -x "`command -v curl`"
 then
-    test -f $download_dir/virtio-stable.iso && test -f $download_dir/virtio-latest.iso && \
+    test -f virtio-stable.iso && test -f virtio-latest.iso && \
         echo "==> Removing old ISO images..." && \
-            rm -iv ${download_dir}/virtio-stable.iso ${download_dir}/virtio-latest.iso
+            rm -v virtio-stable.iso virtio-latest.iso
 
     echo "==> Fetching the latest virtio-win ISO..."
     curl -fSLO \
