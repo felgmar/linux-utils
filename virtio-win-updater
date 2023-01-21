@@ -32,8 +32,9 @@ then
         https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso
 
     echo "==> Fetching the stable virtio-win ISO..."
-    curl -fSLO \
-        https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso
+    curl -fSL \
+        https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso \
+	-o virtio-win-stable.iso
 else
     echo ":: ERROR: curl: command not found"
     exit 1
