@@ -1,0 +1,48 @@
+#!/bin/sh
+set -e
+
+load_config()
+{
+    for f in `pwd`/functions
+    do
+        test ! -x $f && chmod -v +x $f
+    done
+
+    test -f ./config.env && . ./config.env
+
+    return $?
+}
+
+while getopts ':i:v:e:a:c:d:r:I:Dhd' arg
+do
+    case $arg in
+        i) include=$(echo "$OPTARG" | sed 's| |,|g');;
+        v) variant=$OPTARG;;
+        e) extractor=$OPTARG;;
+        a) arch=$OPTARG;;
+        c) codename=$OPTARG;;
+        d) chroot_dir=$OPTARG;;
+        r) repository=$OPTARG;;
+        I) disk=$OPTARG;;
+        D) no_formatting=1;;
+        h) functions/help; exit 1;;
+        ?) functions/help; exit 1;;
+    esac
+done
+
+test `whoami` != "root" && \
+    echo "This script must be run as root" && \
+    exit 1
+
+load_config || exit 1
+
+if test ! $no_formatting
+then
+    test $disk && functions/format-disk || functions/format-disk
+else
+    test $disk && echo "Cannot format $disk in debug mode" && exit 1
+fi
+
+functions/install-base-system
+functions/setup-base-system
+

@@ -1,0 +1,13 @@
+#!/bin/sh
+
+echo "Usage: `basename $(pwd)` [OPTIONS]
+Options:
+  -i    Specify additional package(s) for installing to chroot (default: apt-utils)
+  -v    Set the variant of chroot (default: minbase)
+  -e    Indicate how deb packages are extracted (default: ar)
+  -a    Set the architecture to use (default: amd64)
+  -c    Sets the specified Ubuntu codename for downloading and installing the chroot (default: jammy)
+  -d    Indicates where the chroot is going to be installed (default: /var/chroot/jammy)
+  -r    Sets where packages are going to be retrieved from (default: http://archive.ubuntu.com/ubuntu)
+  -D    Debug mode. Installs chroot onto a directory instead of a physical disk. Useful for testing."
+

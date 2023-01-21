@@ -1,28 +1,65 @@
-pkgs=(
-    "com.android.browser"
-    "com.android.chrome"
-    "com.facebook.appmanager"
-    "com.facebook.services"
-    "com.facebook.system"
-    "com.google.android.apps.googleassistant"
-    "com.google.android.apps.subscriptions.red"
-    "com.google.android.apps.walletnfcrel"
-    "com.google.android.googlequicksearchbox"
-    "com.google.android.projection.gearhead"
-    "com.google.android.tts"
-    "com.google.ar.lens"
-    "com.mi.globalbrowser"
-    "com.mipay.wallet.in"
-    "com.miui.analytics"
-    "com.miui.msa.global"
-    "com.miui.videoplayer"
-    "com.xiaomi.glgm"
-    "com.xiaomi.mi_connect_service"
-    "com.xiaomi.midrop"
-    "com.xiaomi.mipicks"
-    "com.xiaomi.payment"
-    "de.telekom.tsc"
-    "net.soti.mobicontrol.enterprise.xiaomi"
-    "org.ifaa.aidl.manager"
-)
+com.android.bluetoothmidiservice
+com.android.calllogbackup
+com.android.egg
+com.android.providers.partnerbookmarks
+com.android.stk
+com.android.traceur
+com.facebook.appmanager
+com.facebook.services
+com.facebook.system
+com.fingerprints.sensortesttool
+com.google.android.apps.googleassistant
+com.google.android.apps.restore
+com.google.android.apps.setupwizard.searchselector
+com.google.android.apps.subscriptions.red
+com.google.android.apps.walletnfcrel
+com.google.android.feedback
+com.google.android.gms.location.history
+com.google.android.googlequicksearchbox
+com.google.android.marvin.talkback
+com.google.android.onetimeinitializer
+com.google.android.partnersetup
+com.google.android.printservice.recommendation
+com.google.android.projection.gearhead
+com.google.android.tts
+com.mediatek.callrecorder
+com.mediatek.engineermode
+com.mediatek.mdmconfig
+com.mi.globalbrowser
+com.milink.service
+com.miui.analytics
+com.miui.bugreport
+com.miui.cit
+com.miui.cleaner
+com.miui.compass
+com.miui.daemon
+com.miui.hybrid
+com.miui.hybrid.accessory
+com.miui.miservice
+com.miui.msa.global
+com.miui.notes
+com.miui.phrase
+com.miui.player
+com.miui.screenrecorder
+com.miui.touchassistant
+com.miui.videoplayer
+com.miui.yellowpage
+com.tencent.soter.soterserver
+com.wapi.wapicertmanager
+com.xiaomi.joyose
+com.xiaomi.mi_connect_service
+com.xiaomi.midrop
+com.xiaomi.mipicks
+com.xiaomi.payment
+com.xiaomi.simactivate.service
+com.xiaomi.xmsfkeeper
+de.telekom.tsc
+org.ifaa.aidl.manager
+cn.wps.xiaomi.abroad.lite
+com.amazon.appmanager
+com.micredit.in
+com.mipay.wallet.in
+com.miui.android.fashiongallery
+com.xiaomi.glgm
+net.sobi.mobicontrol.enterprise.xiaomi
 

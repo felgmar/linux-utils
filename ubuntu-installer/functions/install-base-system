@@ -1,0 +1,53 @@
+#!/bin/sh
+
+if test ! $no_formatting
+then
+    if test ! -d "$chroot_dir/$codename"
+    then
+        (sudo debootstrap --include=$include \
+                          --variant=$variant \
+                          --extractor=$extractor \
+                          --arch=$arch \
+                          $codename \
+                          $chroot_dir/$codename \
+                          $repository) | tee -a installation.log
+
+        test $? && echo ":: Your Ubuntu $codename-based chroot can be found at '$chroot_dir/$codename'"
+    else
+        read -p ":: Do you want to reinstall your chroot? [Y/N]: " reinstallChroot
+        case "$reinstallChroot" in
+            [Yy]*)
+                sudo rm -rv "$chroot_dir/$codename"
+                (sudo debootstrap --include=$include \
+                                  --variant=$variant \
+                                  --extractor=$extractor \
+                                  --arch=$arch \
+                                  $codename \
+                                  $chroot_dir/$codename \
+                                  $repository) | tee -a installation.log
+                test $? && echo ":: Your Ubuntu $codename-based chroot can be found at '$chroot_dir/$codename'"
+            ;;
+        esac
+
+        test $? && \
+            read -p ":: Do you want to chroot into $chroot_dir/$codename? [Y/N]: " modifyChroot
+            case "$modifyChroot" in
+                [Yy]*) chroot "$chroot_dir/$codename" /bin/bash;;
+            esac
+    fi
+else
+    (sudo debootstrap --include=$include \
+                      --variant=$variant \
+                      --extractor=$extractor \
+                      --arch=$arch \
+                      $codename \
+                      /mnt/$codename \
+                      $repository) | tee -a installation.log
+
+    test $? && \
+        read -p ":: Do you want to chroot into $/mnt/$codename? [Y/N]: " modifyChroot
+        case "$modifyChroot" in
+            [Yy]*) chroot "$/mnt/$codename" /bin/bash;;
+        esac
+fi
+
