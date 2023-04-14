@@ -38,11 +38,17 @@ load_config || exit 1
 
 if test ! $no_formatting
 then
-    test $disk && functions/format-disk || functions/format-disk
+    if test $disk
+    then
+        functions/format-disk
+        functions/install-base-system
+        functions/setup-base-system
+    else
+        functions/format-disk
+        functions/install-base-system
+        functions/setup-base-system
+    fi
 else
     test $disk && echo "Cannot format $disk in debug mode" && exit 1
 fi
-
-functions/install-base-system
-functions/setup-base-system
 
