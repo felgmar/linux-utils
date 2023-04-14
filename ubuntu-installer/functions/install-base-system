@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if test ! $no_formatting
+if test $no_formatting
 then
     if test ! -d "$chroot_dir/$codename"
     then
@@ -43,11 +43,9 @@ else
                       $codename \
                       /mnt/$codename \
                       $repository) | tee -a installation.log
-
     test $? && \
-        read -p ":: Do you want to chroot into $/mnt/$codename? [Y/N]: " modifyChroot
+        read -p ":: Do you want to chroot into /mnt/$codename? [Y/N]: " modifyChroot
         case "$modifyChroot" in
-            [Yy]*) chroot "$/mnt/$codename" /bin/bash;;
+            [Yy]*) chroot "/mnt/$codename" /bin/bash;;
         esac
 fi
-

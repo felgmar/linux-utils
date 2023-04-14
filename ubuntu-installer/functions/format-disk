@@ -35,27 +35,30 @@ else
     mkfs.vfat -F 32 -n EFI ${disk}1
 fi
 
-mount -v ${disk}3 /mnt/$codename
+if test ! `grep -qo /mnt/$codename /proc/mounts`
+then
+    mount -v ${disk}3 /mnt/$codename
+fi
 
-for d in /mnt/$codename/{boot,home}
+for d in boot home
 do
-    if test ! -d "$d"
+    if test ! -d $d
     then
-        mkdir -v $d/{boot,home}
+        mkdir -v /mnt/$codename/$d
     fi
 done
 
-mount -v ${disk}2 /mnt/$codename/boot
+if test ! `grep -qo /mnt/$codename/boot /proc/mounts`
+then
+    mount -v ${disk}2 /mnt/$codename/boot
+fi
 
 if test ! -d /mnt/$codename/boot/efi
 then
-    mkdir -v /mnt/$codename
+    mkdir -v /mnt/$codename/boot/efi
 fi
 
-sudo mount -v ${disk}1 /mnt/$codename/boot/efi
-
-for i in /dev /dev/pts /proc /sys /sys/firmware/efi/efivars /run
-do
-    sudo mount -v -B $i /mnt/${codename}$i
-done
-
+if test ! `grep -qo /mnt/$codename/boot/efi /proc/mounts`
+then
+    mount -v ${disk}1 /mnt/$codename/boot/efi
+fi
