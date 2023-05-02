@@ -10,33 +10,36 @@ Options:
 --help,-h       Displays this message\n\n"
 }
 
-[ $# -eq 0 ] && help && exit 0
+test -z $1 && help && exit 1
 
-while [ $# -gt 0 ]; do
-    case "${1}" in
-        --country|-c)
-            shift
-            country="${1}"
-        ;;
-
-        --sortby|-s)
-            shift
-            sortby="${1}"
-	    ;;
-
-        --help|-h)
-            help
-        ;;
-
-        *)
-            help
-        ;;
+while getopts 'c:s:a' arg
+do
+    case $arg in
+        c) country="$OPTARG";;
+        s) sortby="$OPTARG";;
+        a) append=1;;
+        ?) help && exit 1;;
     esac
-    shift
 done
 
-[ -z $country ] && return 1
-[ -z $sortby ] && return 1
-echo ":: Updating mirrors from ${country} and sorting them by ${sortby}, please wait..." && \
-    reflector --country ${country} --sort ${sortby} --save /etc/pacman.d/mirrorlist || return 1
+if test -z $country
+then
+    echo "Missing country"
+    exit 1
+elif test -z $sortby
+then
+    echo "Missing sorting type"
+    exit 1
+fi
+
+test ! -x "$(command -v reflector)" && sudo pacman -S reflector
+
+if test $append
+then
+    echo ":: Updating mirrors from $country and sorting them by $sortby, please wait..."
+    reflector --country $country --sort $sortby --save /etc/pacman.d/mirrorlist
+else
+    echo ":: Updating mirrors from $country and sorting them by $sortby, please wait..."
+    reflector --country $country --sort $sortby | sudo tee -a /etc/pacman.d/mirrorlist
+fi
 
