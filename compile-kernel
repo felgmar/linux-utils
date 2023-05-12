@@ -12,40 +12,37 @@ do
         b) kernelbranch="$OPTARG";;
         k) kernelver="$OPTARG";;
         c) cleanup=1;;
-        h) echo "Usage: `basename $0` [-b KERNELBRANCH] [-k KERNEL_VERSION] [-c] {-h}"; exit 1;;
-        ?) echo "Type '`basename $0` -h' for a list of available options."; exit 1;;
+        h) echo "Usage: $(basename $0) [-b KERNELBRANCH] [-k KERNEL_VERSION] [-c] {-h}"; exit 1;;
+        ?) echo "Type '$(basename $0) -h' for a list of available options."; exit 1;;
     esac
 done
 
 test ! $kernelbranch && echo "Missing kernel branch" && exit 1
 test ! $kernelver && echo "Missing kernel version" && exit 1
 
-if test `whoami` != "root"
+if test "$(whoami)" != "root"
 then
     echo "You must execute this script as root"
     exit 1
 fi
 
-if test ! `command -v apt`
+test ! "$(command -v apt)" && echo "ERROR: apt: command not found" && exit 1
+
+if test ! -d "linux-$kernelver"
 then
-    echo "ERROR: apt: command not found"
-    exit 1
+    echo "Downloading file linux-$kernelver.tar.xz..."
+    curl -fSLO "https://cdn.kernel.org/pub/linux/kernel/$kernelbranch/linux-$kernelver.tar.xz"
+    echo "Extracting linux-$kernelver.tar.gz..."
+    tar xf "linux-$kernelver.tar.xz"
 fi
 
-if test ! -d linux-$kernelver
-then
-    curl -fSL \
-        https://cdn.kernel.org/pub/linux/kernel/$kernelbranch/linux-$kernelver.tar.xz \
-        -o linux-$kernelver.tar.xz
-    tar xvf linux-$kernelver.tar.xz
-fi
+test -d "linux-$kernelver" && cd linux-$kernelver
 
-cd linux-$kernelver
+apt install -y flex bison libssl-dev libelf-dev
 
-apt install -y flex bison libssl-dev bc rsync libelf-dev
 make ARCH=$(uname -m) defconfig
 nice make -j `nproc --all` bindeb-pkg LOCALVERSION=-custom
 
-test $cleanup || apt purge -y --autoremove flex bison libssl-dev bc rsync libelf-dev
+test $cleanup && apt purge --autoremove flex bison libssl-dev libelf-dev
 
 sudo update-grub && sudo update-initramfs -u -k all
