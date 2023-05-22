@@ -32,7 +32,7 @@ then
     exit 1
 fi
 
-test ! -x "$(command -v reflector)" && sudo pacman -S reflector
+test ! "$(command -v reflector)" && sudo pacman -S reflector
 
 if test $append
 then
