@@ -1,7 +1,8 @@
 #!/bin/sh
 set -e
 
-help() {
+help()
+{
     printf "\nUsage: ${0} [OPTIONS]
 
 Options:
@@ -17,7 +18,6 @@ do
     case $arg in
         c) country="$OPTARG";;
         s) sortby="$OPTARG";;
-        a) append=1;;
         ?) help && exit 1;;
     esac
 done
@@ -26,20 +26,13 @@ if test -z $country
 then
     echo "Missing country"
     exit 1
-elif test -z $sortby
+fi
+if test -z $sortby
 then
     echo "Missing sorting type"
     exit 1
 fi
 
-test ! "$(command -v reflector)" && sudo pacman -S reflector
+test ! "$(command -v reflector)" && sudo pacman -S reflector --needed || continue
 
-if test $append
-then
-    echo ":: Updating mirrors from $country and sorting them by $sortby, please wait..."
-    reflector --country $country --sort $sortby --save /etc/pacman.d/mirrorlist
-else
-    echo ":: Updating mirrors from $country and sorting them by $sortby, please wait..."
-    reflector --country $country --sort $sortby | sudo tee -a /etc/pacman.d/mirrorlist
-fi
-
+reflector --country $country --sort $sortby --save /etc/pacman.d/mirrorlist --verbose
