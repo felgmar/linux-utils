@@ -30,7 +30,7 @@ then
     echo "Please install the package preloader-signed from the AUR"
     exit 1
 else
-    test ! $(bootctl is-installed) && bootctl install --no-variables
+    test "$(bootctl is-installed)" != "yes" && bootctl install --no-variables
 
     find /boot/EFI/BOOT/BOOTX64.EFI -type f -exec mv -v '{}' '{}'.backup \;
     find /usr/share/preloader-signed/*.efi -type f -exec cp -v '{}' /boot/EFI/BOOT/ \;
