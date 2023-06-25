@@ -1,6 +1,6 @@
 #!/bin/sh
 
-uuid="`adb shell sm list-volumes | grep "private" | cut -d " " -f 3 | head -n 1`"
+uuid="$(adb shell sm list-volumes | grep "private" | cut -d " " -f 3 | head -n 1)"
 
 move_package()
 {
