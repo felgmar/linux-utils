@@ -12,7 +12,7 @@ do
         b) kernelbranch="$OPTARG";;
         k) kernelver="$OPTARG";;
         c) cleanup=1;;
-        h) echo "Usage: $(basename $0) [-b KERNELBRANCH] [-k KERNEL_VERSION] [-c] {-h}"; exit 1;;
+        h) echo "Usage: $(basename $0) [-b KERNEL_BRANCH] [-k KERNEL_VERSION] [-c] {-h}"; exit 1;;
         ?) echo "Type '$(basename $0) -h' for a list of available options."; exit 1;;
     esac
 done
