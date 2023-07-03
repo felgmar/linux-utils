@@ -1,56 +1,56 @@
 #!/bin/sh
 
-apply()
+apply_settings()
 {
-    echo "Setting 'clock-show-seconds' to 'true'..."
-    gsettings set org.gnome.desktop.interface clock-show-seconds true || return 1
-    echo "Setting 'clock-show-date' to 'true'..."
-    gsettings set org.gnome.desktop.interface clock-show-date true || return 1
-    echo "Setting 'show-weekdate' to 'true'..."
-    gsettings set org.gnome.desktop.calendar show-weekdate true || return 1
+    gsettings set org.gnome.desktop.wm.preferences button-layout appmenu:minimize,maximize,close
+    gsettings set org.gnome.desktop.interface icon-theme Papirus
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-automatic true
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature "uint32 4700"
+    gsettings set org.gnome.mutter dynamic-workspaces false
 
-    if test ! -z `pacman -Qeq | grep papirus-icon-theme`
-    then
-        echo "Setting 'icon-theme' to 'Papirus'..."
-        gsettings set org.gnome.desktop.interface icon-theme Papirus || return 1
-    else
-        echo "[E]: Could not find the icon-theme named 'Papirus'"
-    fi
-    echo "Setting 'button-layout' to 'appmenu:minimize,maximize,close'..."
-    gsettings set org.gnome.desktop.wm.preferences button-layout appmenu:minimize,maximize,close || return 1
+    gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'
+    gsettings set org.gnome.nautilus.preferences search-view 'list-view'
+    gsettings set org.gnome.nautilus.preferences show-create-link true
+    gsettings set org.gnome.nautilus.preferences show-delete-permanently true
 
-    if test $? -eq 0
-    then
-        echo "success"
-    else
-        echo "failure"
-    fi
+    for n in $(seq 1 1 4)
+    do
+        gsettings set org.gnome.desktop.wm.keybindings move-to-workspace-$n "['<Alt>$n']"
+        gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-$n "['<Control>$n']"
+    done
 
     return $?
 }
 
-reset()
+reset_settings()
 {
-    echo "Resetting settings to default..."
-    gsettings reset org.gnome.desktop.interface clock-show-seconds || return 1
-    gsettings reset org.gnome.desktop.interface clock-show-date || return 1
-    gsettings reset org.gnome.desktop.calendar show-weekdate || return 1
-    gsettings reset org.gnome.desktop.interface icon-theme || return 1
-    gsettings reset org.gnome.desktop.wm.preferences button-layout || return 1
+    gsettings reset org.gnome.desktop.wm.preferences button-layout
+    gsettings reset org.gnome.desktop.interface icon-theme
+    gsettings reset org.gnome.settings-daemon.plugins.color night-light-enabled
+    gsettings reset org.gnome.settings-daemon.plugins.color night-light-schedule-automatic
+    gsettings reset org.gnome.settings-daemon.plugins.color night-light-temperature
+    gsettings reset org.gnome.mutter dynamic-workspaces
 
-    test $? && echo "success" || echo "failure"
+    gsettings reset org.gnome.nautilus.preferences default-folder-viewer
+    gsettings reset org.gnome.nautilus.preferences search-view
+    gsettings reset org.gnome.nautilus.preferences show-create-link
+    gsettings reset org.gnome.nautilus.preferences show-delete-permanently
+
+    for n in $(seq 1 1 4)
+    do
+        gsettings reset org.gnome.desktop.wm.keybindings move-to-workspace-$n
+        gsettings reset org.gnome.desktop.wm.keybindings switch-to-workspace-$n
+    done
 
     return $?
 }
-
-test -z $1 && echo "Usage: `basename $0` [-a|-r]" && exit 1
 
 while getopts 'ar' arg
 do
-    case $arg in
-        a) apply; exit $?;;
-        r) reset; exit $?;;
-        ?) echo "Usage: `basename $0` [-a|-r]"; exit 1;;
+    case "$arg" in
+        a) apply_settings; exit $?;;
+        r) reset_settings; exit $?;;
+        ?) exit 1;;
     esac
 done
-
