@@ -14,7 +14,7 @@ then
     exit 1
 fi
 
-if test "$(command -v lsb_release)"
+if test ! "$(command -v lsb_release)"
 then
     pacman -Sy lsb-release --noconfirm --needed
 fi
