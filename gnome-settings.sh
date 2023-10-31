@@ -10,7 +10,6 @@ apply_settings()
     gsettings set org.gnome.mutter dynamic-workspaces false
 
     gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'
-    gsettings set org.gnome.nautilus.preferences search-view 'list-view'
     gsettings set org.gnome.nautilus.preferences show-create-link true
     gsettings set org.gnome.nautilus.preferences show-delete-permanently true
 
@@ -54,3 +53,4 @@ do
         ?) exit 1;;
     esac
 done
+
