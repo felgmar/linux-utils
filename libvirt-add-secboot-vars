@@ -1,0 +1,21 @@
+#!/bin/sh
+
+QEMU_NVRAM_DIR="/var/lib/libvirt/qemu/nvram"
+
+PS3="Select a file: "
+select nvram in ${QEMU_NVRAM_DIR}/*_VARS.fd
+do
+    case "${nvram}" in
+        *)
+            if test ! -f "$(echo ${nvram} | sed 's,.fd,,g')_secboot.fd"
+            then
+                echo "Enrolling for $PS3 - :${nvram}"
+                sudo virt-fw-vars --enroll-redhat -i ${nvram} -o $(echo ${nvram} | sed 's,.fd,,g')_secboot.fd
+                exit 0
+            else
+                echo "error: the file $(echo ${nvram} | sed 's,.fd,,g')_secboot.fd already exists."
+                exit 1
+            fi
+        ;;
+    esac
+done
