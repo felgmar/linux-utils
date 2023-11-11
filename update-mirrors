@@ -6,33 +6,24 @@ help()
     printf "\nUsage: ${0} [OPTIONS]
 
 Options:
---country,-c    Set the country to where fetch mirrors from
---sortby,-s     Sort mirrors by age, rate, speed, etc
---help,-h       Displays this message\n\n"
+  -d    Checks mirrors based on the distro specified
+  -h    Displays this message\n\n"
 }
 
 test -z $1 && help && exit 1
 
-while getopts 'c:s:a' arg
+while getopts 'd:' arg
 do
     case $arg in
-        c) country="$OPTARG";;
-        s) sortby="$OPTARG";;
+        d) LINUX_DISTRO="$OPTARG";;
         ?) help && exit 1;;
     esac
 done
 
-if test -z $country
+if test -z "${LINUX_DISTRO}"
 then
-    echo "Missing country"
-    exit 1
-fi
-if test -z $sortby
-then
-    echo "Missing sorting type"
+    echo "Missing Linux distribution"
     exit 1
 fi
 
-test ! "$(command -v reflector)" && sudo pacman -S reflector --needed || continue
-
-reflector --country $country --sort $sortby --save /etc/pacman.d/mirrorlist --verbose
+rate-mirrors --allow-root --save /etc/pacman.d/mirrorlist "${LINUX_DISTRO}"
