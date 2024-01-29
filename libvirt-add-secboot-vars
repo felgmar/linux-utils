@@ -4,9 +4,10 @@ QEMU_NVRAM_DIR="/var/lib/libvirt/qemu/nvram"
 
 if test -z "$1"
 then
-    PS3=":: Select a file: "
-    select nvram in ${QEMU_NVRAM_DIR}/*_VARS.fd
+    PS3="Select a file: "
+    select nvram in ${QEMU_NVRAM_DIR}/*_VARS.fd Quit
     do
+        if test $nvram = "Quit"; then exit $?; fi
         if test ! -f "$(echo $nvram | sed 's,.fd,_secboot.fd,g')"
         then
             virt-fw-vars --enroll-redhat -i $nvram -o $(echo $nvram | sed 's,.fd,_secboot.fd,g')
