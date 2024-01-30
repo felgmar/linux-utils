@@ -3,14 +3,14 @@ set -e
 
 help()
 {
-    printf "\nUsage: ${0} [OPTIONS]
-
-Options:
-  -d    Checks mirrors based on the distro specified
-  -h    Displays this message\n\n"
+    echo "Usage: $0 [-d DISTRO]"
 }
 
-test -z $1 && help && exit 1
+if test -z "$1"
+then
+    help
+    exit 1
+fi
 
 while getopts 'd:' arg
 do
