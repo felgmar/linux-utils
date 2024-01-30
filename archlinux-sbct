@@ -25,7 +25,7 @@ then
     exit 1
 fi
 
-if test ! $(pacman -Qqe | grep "preloader-signed")
+if test ! "$(pacman -Qqe | grep "preloader-signed")"
 then
     echo "Please install the package preloader-signed from the AUR"
     exit 1
