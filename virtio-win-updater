@@ -2,14 +2,10 @@
 set -e
 
 help() {
-    printf "\nUsage: `basename $0` [OPTIONS]
-
-Options:
-    -d   Specifies the directory to where the ISOs will be downloaded to
-    -h   Displays this message\n\n"
+    echo "Usage: $(basename "$0") [-d FOLDER]"
 }
 
-while getopts 'vd:' arg
+while getopts 'dhv:' arg
 do
     case "$arg" in
         d) download_dir="$OPTARG";;
@@ -19,9 +15,15 @@ do
     esac
 done
 
-test -z "$download_dir" && help && exit 1 || cd $download_dir
+if test -z "${download_dir}"
+then
+    help
+    exit 1
+else
+    cd "${download_dir}"
+fi
 
-if test -x "`command -v curl`"
+if test -x "$(command -v curl)"
 then
     test -f virtio-stable.iso && test -f virtio-latest.iso && \
         echo "==> Removing old ISO images..." && \
