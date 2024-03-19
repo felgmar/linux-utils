@@ -5,7 +5,7 @@ help() {
     echo "Usage: $(basename "$0") [-d FOLDER]"
 }
 
-while getopts 'dhv:' arg
+while getopts 'd:hv' arg
 do
     case "$arg" in
         d) download_dir="$OPTARG";;
@@ -15,30 +15,21 @@ do
     esac
 done
 
-if test -z "${download_dir}"
+if test ! -z "${download_dir}"
 then
-    help
-    exit 1
-else
-    cd "${download_dir}"
-fi
-
-if test -x "$(command -v curl)"
-then
-    test -f virtio-stable.iso && test -f virtio-latest.iso && \
-        echo "==> Removing old ISO images..." && \
-            rm -v virtio-stable.iso virtio-latest.iso
-
     echo "==> Fetching the latest virtio-win ISO..."
-    curl --progress-bar -fSLO \
-        https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso
+    curl --progress-bar -fSL -o "${download_dir}/virtio-win-latest.$(date +%Y%m%d_%H%M%S_%N).iso" \
+        https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso
 
     echo "==> Fetching the stable virtio-win ISO..."
-    curl --progress-bar -fSL \
-        https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso \
-	-o virtio-win-stable.iso
+    curl --progress-bar -fSL -o "${download_dir}/virtio-win-stable.$(date +%Y%m%d_%H%M%S_%N).iso" \
+        https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso
 else
-    echo ":: ERROR: curl: command not found"
-    exit 1
-fi
+    echo "==> Fetching the latest virtio-win ISO..."
+    curl --progress-bar -fSL -o "${HOME}/Downloads/virtio-win-latest.$(date +%Y%m%d_%H%M%S_%N).iso" \
+        https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso
 
+    echo "==> Fetching the stable virtio-win ISO..."
+    curl --progress-bar -fSL -o "${download_dir}/virtio-win-stable.$(date +%Y%m%d_%H%M%S_%N).iso" \
+        https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso
+fi
