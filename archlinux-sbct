@@ -38,4 +38,3 @@ find /boot/EFI/BOOT/BOOTX64.EFI -type f -exec mv -v '{}' '{}'.backup \;
 find /usr/share/preloader-signed/*.efi -type f -exec cp -v '{}' /boot/EFI/BOOT/ \;
 find /boot/EFI/systemd/systemd-bootx64.efi -type f -exec cp -v '{}' /boot/EFI/BOOT/loader.efi \;
 find /boot/EFI/BOOT/PreLoader.efi -type f -exec mv -v '{}' /boot/EFI/BOOT/BOOTX64.EFI \;
-

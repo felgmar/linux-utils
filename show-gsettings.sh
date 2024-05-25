@@ -11,4 +11,3 @@ gsettings list-recursively | \
             --height=900 \
             --separator="\n" \
             --editable
-
