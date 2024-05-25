@@ -10,7 +10,7 @@ do
     case "$arg" in
         d) download_dir="$OPTARG";;
         h) help;;
-	v) set -v;;
+        v) set -v;;
         ?) help;;
     esac
 done
