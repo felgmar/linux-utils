@@ -25,7 +25,7 @@ args = parser.parse_args()
 
 class download_progress():
     def __init__(self):
-        self.time: str = "{:+%Y%m%d_%H%M%S}".format(datetime.datetime.now())
+        self.time: str = "{:%Y%m%d_%H%M%S}".format(datetime.datetime.now())
         self.progress_bar = None
 
     def __call__(self, block_number: int, block_size: int, total_size: int):
