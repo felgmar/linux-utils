@@ -24,5 +24,5 @@ if __name__ == "__main__":
         if not current_user == "root":
             raise PermissionError("insufficient permissions to run this script")
 
-        cmd: str = f"/usr/bin/rate-mirrors --allow-root --save /etc/pacman.d/mirrorlist {args.distro}"
+        cmd: str = f"/usr/bin/rate-mirrors --allow-root --save {args.save} {args.distro}"
         run(args=cmd, shell=True)
