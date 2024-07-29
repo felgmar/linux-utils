@@ -26,7 +26,7 @@ enroll_secboot()
             nvram_secboot_file="$(echo $nvram | sed 's,.fd,_secboot.fd,g')"
             if test ! -f "${nvram_secboot_file}"
             then
-                virt-fw-vars --enroll-redhat -i $nvram -o ${nvram_secboot_file}
+                virt-fw-vars --enroll-redhat -i "${nvram}" -o "${nvram_secboot_file}"
             else
                 echo "The file ${nvram_secboot_file} already exists."
                 return 1
@@ -37,15 +37,13 @@ enroll_secboot()
     return $?
 }
 
+test -z "$1" && enroll_secboot
+
 while getopts 'a' arg
 do
-    case "${arg}" in
+   case "${arg}" in
         'a')
             ENROLL_ALL=1 enroll_secboot
-            exit $?
-        ;;
-        ?)
-            enroll_secboot
             exit $?
         ;;
     esac
