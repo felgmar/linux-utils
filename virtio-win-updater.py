@@ -43,7 +43,7 @@ class download_progress():
 
 def get_virtio_iso(destination_path: str, branch: str):
     main_url: str = "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads"
-    time: str = "{:%Y%m%d_%H%M%S}".format(datetime.datetime.now())
+    time: str = datetime.datetime.now()
 
     match branch:
         case "stable":
@@ -63,5 +63,4 @@ def get_virtio_iso(destination_path: str, branch: str):
 if running_os != "linux":
     raise RuntimeError(f"{platform.lower()}: platform not supported")
 else:
-    if __name__ == "__main__":
         get_virtio_iso(args.download_directory, args.branch)
