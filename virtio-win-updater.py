@@ -56,7 +56,7 @@ def get_virtio_iso(destination_path: str, branch: str):
                         reporthook=download_progress())
         case _:
             if branch:
-                raise ValueError(f"[!] ${branch}: invalid branch")
+                raise ValueError(f"[!] {branch}: invalid branch")
             else:
                 raise ValueError(f"[!] no valid branch was specified")
 
