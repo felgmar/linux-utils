@@ -43,7 +43,7 @@ class download_progress():
 
 def get_virtio_iso(destination_path: str, branch: str):
     main_url: str = "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads"
-    time: datetime.datetime = datetime.datetime.now()
+    time: datetime.datetime = "{:%Y%m%d_%H%M%S}".format(datetime.datetime.now())
 
     match branch:
         case "stable":
