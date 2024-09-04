@@ -3,6 +3,7 @@
 DEFAULT_ZONE="$(firewall-cmd --get-default-zone)"
 SERVICES=("kdeconnect")
 SOURCES=("192.168.1.0/28")
+PORTS=('57621')
 
 set_default_zone_block()
 {
@@ -14,6 +15,28 @@ set_default_zone_block()
         return 2
     fi
 
+    return $?
+}
+
+open_ports()
+{
+    for port in ${PORTS[@]}
+    do
+        if test ! "$(sudo firewall-cmd --list-ports)" = "${port}/tcp ${port}/udp"
+        then
+            sudo firewall-cmd --permanent --add-port "${port}"
+        else
+            echo "[error] ${service}: service already enabled"
+        fi
+    done
+
+    if test $? -ne 0
+    then
+        sudo firewall-cmd --complete-reload
+    fi
+
+    return $?
+    firewall-cmd --permanent --add-port="57621/tcp" --add-port="57621/udp"
     return $?
 }
 
@@ -58,5 +81,6 @@ add_sources()
 }
 
 set_default_zone_block
+open_ports
 add_services
 
