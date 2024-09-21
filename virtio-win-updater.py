@@ -33,7 +33,7 @@ class download_progress():
             self.progress_bar = progressbar.ProgressBar(max_value=total_size)
             self.progress_bar.print(f"Downloading virtio-win-{args.branch}.{self.time}.iso, please wait...")
             self.progress_bar.start()
-            
+
         bytes_recieved: int = block_number * block_size
 
         if bytes_recieved < total_size:
@@ -43,11 +43,11 @@ class download_progress():
 
 def get_virtio_iso(destination_path: str, branch: str):
     main_url: str = "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads"
-    time: datetime.datetime = "{:%Y%m%d_%H%M%S}".format(datetime.datetime.now())
+    time: str = "{:%Y%m%d_%H%M%S}".format(datetime.datetime.now())
 
     match branch:
         case "stable":
-            urlretrieve(f"{main_url}/{branch}-virtio/virtio-win.iso", 
+            urlretrieve(f"{main_url}/{branch}-virtio/virtio-win.iso",
                         f"{destination_path}/virtio-win-stable.{time}.iso",
                         reporthook=download_progress())
         case "latest":
