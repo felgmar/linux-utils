@@ -1,5 +1,4 @@
 #!/bin/sh
-
 QEMU_NVRAM_DIR="/var/lib/libvirt/qemu/nvram"
 
 ENROLL_ALL=0
