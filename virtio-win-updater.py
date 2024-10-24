@@ -4,7 +4,6 @@ from argparse import ArgumentParser
 from sys import platform
 from urllib.request import urlretrieve
 import datetime
-import progressbar
 
 running_os = platform.lower()
 
@@ -23,44 +22,45 @@ group.add_argument("--version", action="version", version="%(prog)s 1.0")
 
 args = parser.parse_args()
 
-class download_progress():
-    def __init__(self):
-        self.time: str = "{:%Y%m%d_%H%M%S}".format(datetime.datetime.now())
-        self.progress_bar = None
-
-    def __call__(self, block_number: int, block_size: int, total_size: int):
-        if self.progress_bar == None:
-            self.progress_bar = progressbar.ProgressBar(max_value=total_size)
-            self.progress_bar.print(f"Downloading virtio-win-{args.branch}.{self.time}.iso, please wait...")
-            self.progress_bar.start()
-
-        bytes_recieved: int = block_number * block_size
-
-        if bytes_recieved < total_size:
-            self.progress_bar.update(bytes_recieved)
-        else:
-            self.progress_bar.finish()
-
 def get_virtio_iso(destination_path: str, branch: str):
     main_url: str = "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads"
+
     time: str = "{:%Y%m%d_%H%M%S}".format(datetime.datetime.now())
+    time: datetime.datetime = datetime.datetime.now()
+
+    if destination_path.endswith("/"):
+        destination_path = destination_path.removesuffix("/")
+
+    upstream_iso: str = f"{main_url}/{branch}-virtio/virtio-win.iso"
+    stable_iso: str = f"{destination_path}/virtio-win-stable_{time.time()}.iso"
+    latest_iso: str = f"{destination_path}/virtio-win-latest_{time.time()}.iso"
 
     match branch:
         case "stable":
-            urlretrieve(f"{main_url}/{branch}-virtio/virtio-win.iso",
-                        f"{destination_path}/virtio-win-stable.{time}.iso",
-                        reporthook=download_progress())
+            print("Downloading file:", stable_iso)
+            try:
+                urlretrieve(upstream_iso, stable_iso)
+            except Exception as e:
+                raise e
         case "latest":
-            urlretrieve(f"{main_url}/{branch}-virtio/virtio-win.iso",
-                        f"{destination_path}/virtio-win-latest.{time}.iso",
-                        reporthook=download_progress())
+            print("Downloading file:", latest_iso)
+            try:
+                urlretrieve(upstream_iso, latest_iso)
+            except Exception as e:
+                raise e
         case _:
             if branch:
-                raise ValueError(f"[!] {branch}: invalid branch")
+                raise ValueError(f"{branch} is not a valid branch")
             else:
-                raise ValueError(f"[!] no valid branch was specified")
+                raise ValueError(f"no valid branch was specified")
 
-if running_os != "linux":
-    raise RuntimeError(f"{platform.lower()}: platform not supported")
-else:
-        get_virtio_iso(args.download_directory, args.branch)
+if __name__ == '__main__':
+    if running_os != "linux":
+        raise RuntimeError(f"{platform.lower()}: platform not supported")
+    else:
+        try:
+            if args.download_directory.endswith("/"):
+                args.download_directory = args.download_directory.removesuffix("/")
+            get_virtio_iso(args.download_directory, args.branch)
+        except Exception as e:
+            raise e
