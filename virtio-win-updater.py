@@ -26,14 +26,13 @@ def get_virtio_iso(destination_path: str, branch: str):
     main_url: str = "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads"
 
     time: str = "{:%Y%m%d_%H%M%S}".format(datetime.datetime.now())
-    time: datetime.datetime = datetime.datetime.now()
 
     if destination_path.endswith("/"):
         destination_path = destination_path.removesuffix("/")
 
     upstream_iso: str = f"{main_url}/{branch}-virtio/virtio-win.iso"
-    stable_iso: str = f"{destination_path}/virtio-win-stable_{time.time()}.iso"
-    latest_iso: str = f"{destination_path}/virtio-win-latest_{time.time()}.iso"
+    stable_iso: str = f"{destination_path}/virtio-win-stable_{time}.iso"
+    latest_iso: str = f"{destination_path}/virtio-win-latest_{time}.iso"
 
     match branch:
         case "stable":
