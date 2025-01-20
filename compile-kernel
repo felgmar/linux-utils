@@ -1,24 +1,27 @@
 #!/bin/sh
 
-# compile-kernel
-# a tool made by Ken Hoo (mrkenhoo)
-# for Debian GNU/Linux amd64
-#
-set -e
-
 while getopts 'b:k:ch' arg
 do
     case "$arg" in
-        b) kernelbranch="$OPTARG";;
-        k) kernelver="$OPTARG";;
-        c) cleanup=1;;
-        h) echo "Usage: $(basename $0) [-b KERNEL_BRANCH] [-k KERNEL_VERSION] [-c] {-h}"; exit 1;;
+        'b') kbranch="$OPTARG";;
+        'k') kver="$OPTARG";;
+        'c') cleanup_after_build=true;;
+        'h') echo "Usage: $(basename $0) [-b KERNEL_BRANCH] [-k KERNEL_VERSION] [-c] {-h}"; exit 1;;
         ?) echo "Type '$(basename $0) -h' for a list of available options."; exit 1;;
     esac
 done
 
-test ! $kernelbranch && echo "Missing kernel branch" && exit 1
-test ! $kernelver && echo "Missing kernel version" && exit 1
+if test -z "${kbranch}"
+then
+    echo "error: kernel branch not specified"
+    exit 1
+fi
+
+if test -z "${kversion}"
+then
+    echo "Error: kernel version not specified"
+    exit 1
+fi
 
 if test "$(whoami)" != "root"
 then
@@ -26,23 +29,26 @@ then
     exit 1
 fi
 
-test ! "$(command -v apt)" && echo "ERROR: apt: command not found" && exit 1
-
-if test ! -d "linux-$kernelver"
+if test ! "$(command -v apt)"
 then
-    echo "Downloading file linux-$kernelver.tar.xz..."
-    curl -fSLO "https://cdn.kernel.org/pub/linux/kernel/$kernelbranch/linux-$kernelver.tar.xz"
-    echo "Extracting linux-$kernelver.tar.gz..."
-    tar xf "linux-$kernelver.tar.xz"
+    echo "error: apt: could not find such package manager"
 fi
 
-test -d "linux-$kernelver" && cd linux-$kernelver
+if test ! -d "linux-${kernelbranch}.${kernelver}"
+then
+    echo "Downloading file linux-${kernelbranch}.${kernelver}.tar.xz..."
+    curl -fSLO "https://cdn.kernel.org/pub/linux/kernel/v${kernelbranch}.x/linux-${kernelbranch}.${kernelver}.tar.xz"
+    echo "Extracting linux-${kernelbranch}.${kernelver}.tar.xz..."
+    tar xf "linux-${kernelbranch}.${kernelver}.tar.xz"
+fi
 
-apt install -y flex bison libssl-dev libelf-dev
+cd "linux-${kernelbranch}.${kernelver}"
 
-make ARCH=$(uname -m) defconfig
-nice make -j `nproc --all` bindeb-pkg LOCALVERSION=-custom
+apt install -y build-essential flex bison libssl-dev libelf-dev debhelper-compat
 
-test $cleanup && apt purge --autoremove flex bison libssl-dev libelf-dev
+make ARCH=$(uname -m) defconfig && LOCALVERSION=-custom nice make -j $(nproc --all) bindeb-pkg
 
-sudo update-grub && sudo update-initramfs -u -k all
+if test $cleanup_after_build == "true"
+then
+    apt purge --autoremove build-essential dpkg-dev flex bison libssl-dev libelf-dev debhelper-compat
+fi
