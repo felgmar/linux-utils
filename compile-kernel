@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 while getopts 'b:k:ch' arg
 do
@@ -17,10 +18,15 @@ then
     exit 1
 fi
 
-if test -z "${kversion}"
+if test -z "${kver}"
 then
     echo "Error: kernel version not specified"
     exit 1
+fi
+
+if test -z "${cleanup_after_build}"
+then
+    cleanup_after_build="false"
 fi
 
 if test "$(whoami)" != "root"
@@ -34,21 +40,23 @@ then
     echo "error: apt: could not find such package manager"
 fi
 
-if test ! -d "linux-${kernelbranch}.${kernelver}"
+if test ! -d "linux-${kbranch}.${kver}"
 then
-    echo "Downloading file linux-${kernelbranch}.${kernelver}.tar.xz..."
-    curl -fSLO "https://cdn.kernel.org/pub/linux/kernel/v${kernelbranch}.x/linux-${kernelbranch}.${kernelver}.tar.xz"
-    echo "Extracting linux-${kernelbranch}.${kernelver}.tar.xz..."
-    tar xf "linux-${kernelbranch}.${kernelver}.tar.xz"
+    echo "Downloading file linux-${kbranch}.${kver}.tar.xz..."
+    curl -fSLO "https://cdn.kernel.org/pub/linux/kernel/v${kbranch}.x/linux-${kbranch}.${kver}.tar.xz"
+    echo "Extracting linux-${kbranch}.${kver}.tar.xz..."
+    tar xf "linux-${kbranch}.${kver}.tar.xz"
 fi
 
-cd "linux-${kernelbranch}.${kernelver}"
+cd "linux-${kbranch}.${kver}"
 
 apt install -y build-essential flex bison libssl-dev libelf-dev debhelper-compat
 
 make ARCH=$(uname -m) defconfig && LOCALVERSION=-custom nice make -j $(nproc --all) bindeb-pkg
 
-if test $cleanup_after_build == "true"
+if "${cleanup_after_build}" == "true"
 then
-    apt purge --autoremove build-essential dpkg-dev flex bison libssl-dev libelf-dev debhelper-compat
+    apt purge -y --autoremove build-essential dpkg-dev flex bison libssl-dev libelf-dev debhelper-compat
+else
+    echo "Not cleaning up"
 fi
