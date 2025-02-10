@@ -20,9 +20,9 @@ if __name__ == "__main__":
 
     if not current_platform == "linux":
         raise RuntimeError(f"{current_platform}: platform not supported")
-    else:
-        if not current_user == "root":
-            raise PermissionError("insufficient permissions to run this script")
+    
+    if not current_user == "root":
+        raise PermissionError("you don't have enough permissions to run this script")
 
-        cmd: str = f"/usr/bin/rate-mirrors --allow-root --save {args.save} {args.distro}"
-        run(args=cmd, shell=True)
+    cmd: str = f"/usr/bin/rate-mirrors --allow-root --save {args.save} {args.distro}"
+    run(args=cmd, shell=True)
