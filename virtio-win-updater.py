@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
-from argparse import ArgumentParser
-from sys import platform
-from urllib.request import urlretrieve
-import datetime
+import argparse, sys, urllib, datetime, os
+import urllib.request
 
-running_os = platform.lower()
+CURRENT_PLATFORM = sys.platform.lower()
 
-parser = ArgumentParser(prog="virtio-win-updater")
+parser = argparse.ArgumentParser(prog="virtio-win-updater")
 group = parser.add_mutually_exclusive_group()
 
 parser.add_argument("-b", "--branch", type=str, help="Override the default branch",
@@ -38,13 +36,13 @@ def get_virtio_iso(destination_path: str, branch: str):
         case "stable":
             print("Downloading file:", stable_iso)
             try:
-                urlretrieve(upstream_iso, stable_iso)
+                urllib.request.urlretrieve(upstream_iso, stable_iso)
             except Exception as e:
                 raise e
         case "latest":
             print("Downloading file:", latest_iso)
             try:
-                urlretrieve(upstream_iso, latest_iso)
+                urllib.request.urlretrieve(upstream_iso, latest_iso)
             except Exception as e:
                 raise e
         case _:
@@ -54,8 +52,8 @@ def get_virtio_iso(destination_path: str, branch: str):
                 raise ValueError(f"no valid branch was specified")
 
 if __name__ == '__main__':
-    if running_os != "linux":
-        raise RuntimeError(f"{platform.lower()}: platform not supported")
+    if CURRENT_PLATFORM != "linux":
+        raise RuntimeError(f"{sys.platform.lower()}: platform not supported")
     else:
         try:
             if args.download_directory.endswith("/"):
