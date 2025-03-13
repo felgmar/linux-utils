@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import argparse, sys, urllib, datetime, os
+import argparse, sys, urllib, datetime
 import urllib.request
 
 CURRENT_PLATFORM = sys.platform.lower()
