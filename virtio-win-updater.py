@@ -52,7 +52,7 @@ def get_virtio_iso(destination_path: str, branch: str):
                 raise ValueError(f"no valid branch was specified")
 
 if __name__ == '__main__':
-    if CURRENT_PLATFORM != "linux":
+    if not CURRENT_PLATFORM == "linux":
         raise RuntimeError(f"{sys.platform.lower()}: platform not supported")
     else:
         try:
