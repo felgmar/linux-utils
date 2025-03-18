@@ -15,13 +15,13 @@ parser.add_argument("--version", action="version", version="%(prog)s 1.0")
 args = parser.parse_args()
 
 if __name__ == "__main__":
-    current_platform: str = platform.lower()
-    current_user: str = getuser()
+    CURRENT_PLATFORM: str = platform.lower()
+    CURRENT_USER: str = getuser()
 
-    if not current_platform == "linux":
-        raise RuntimeError(f"{current_platform}: platform not supported")
+    if not CURRENT_PLATFORM == "linux":
+        raise RuntimeError(f"{CURRENT_PLATFORM} is not supported")
     
-    if not current_user == "root":
+    if not CURRENT_USER == "root":
         raise PermissionError("you don't have enough permissions to run this script")
 
     cmd: str = f"/usr/bin/rate-mirrors --allow-root --save {args.save} {args.distro}"
