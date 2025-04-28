@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 from getpass import getuser
 from sys import platform
 from subprocess import run
+from os import path
 
 parser = ArgumentParser(prog="update-mirrors")
 parser.add_argument("-d", "--distro", type=str, metavar="", default="arch",
@@ -24,5 +25,8 @@ if __name__ == "__main__":
     if not CURRENT_USER == "root":
         raise PermissionError("you don't have enough permissions to run this script")
 
-    cmd: str = f"/usr/bin/rate-mirrors --allow-root --save {args.save} {args.distro}"
+    if not path.isfile(args.save):
+        raise FileNotFoundError(f"{args.save} does not exist")
+
+    cmd: str = f"rate-mirrors --allow-root --save {args.save} {args.distro}"
     run(args=cmd, shell=True)
