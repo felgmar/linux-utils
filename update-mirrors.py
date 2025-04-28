@@ -10,7 +10,7 @@ parser = ArgumentParser(prog="update-mirrors")
 parser.add_argument("-d", "--distro", type=str, metavar="", default="arch",
                     help="the distro for which to download mirrors for")
 parser.add_argument("-s", "--save", type=str, metavar="", default="/etc/pacman.d/mirrorlist",
-                    help="directory where to save the mirrorlist at")
+                    help="directory where the mirror list will be saved to")
 parser.add_argument("--version", action="version", version="%(prog)s 1.0")
 
 args = parser.parse_args()
