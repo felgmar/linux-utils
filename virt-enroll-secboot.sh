@@ -1,49 +1,92 @@
 #!/bin/sh
+set -eou pipefail
+
 QEMU_NVRAM_DIR="/var/lib/libvirt/qemu/nvram"
 
-ENROLL_ALL=0
-
-enroll_secboot()
+help()
 {
-    if test "${ENROLL_ALL}" -eq 0
+    cat <<EOF
+Usage: $0 [-a] [-h]
+
+Enroll Red Hat Secure Boot keys into QEMU OVMF NVRAM files.
+
+Options:
+  -a    Enroll keys into all *_VARS.fd files in ${QEMU_NVRAM_DIR}
+  -h    Show this help message and exit
+
+If no options are given, you will be prompted to select a file interactively.
+EOF
+    exit 0
+}
+
+enroll_file()
+{
+    nvram="$1"
+    new_nvram="${nvram%.fd}.secboot.fd"
+    if test ! -f "${new_nvram}"
     then
-        PS3="Select a file: "
-        select nvram in ${QEMU_NVRAM_DIR}/*_VARS.fd
-        do
-            nvram_secboot_file="$(echo $nvram | sed 's,.fd,_secboot.fd,g')"
-            if test ! -f "${nvram_secboot_file}"
-            then
-                virt-fw-vars --enroll-redhat -i $nvram -o ${nvram_secboot_file}
-            else
-                echo "The file ${nvram_secboot_file} already exists."
-            fi
-        done
-    elif test "${ENROLL_ALL}" -eq 1
-    then
-        for nvram in ${QEMU_NVRAM_DIR}/*_VARS.fd
-        do
-            nvram_secboot_file="$(echo $nvram | sed 's,.fd,_secboot.fd,g')"
-            if test ! -f "${nvram_secboot_file}"
-            then
-                virt-fw-vars --enroll-redhat -i "${nvram}" -o "${nvram_secboot_file}"
-            else
-                echo "The file ${nvram_secboot_file} already exists."
-                return 1
-            fi
-        done
+        virt-fw-vars --enroll-redhat -i "${nvram}" -o "${new_nvram}"
+    else
+        echo "The file ${new_nvram} already exists."
+        return 1
     fi
 
     return $?
 }
 
-test -z "$1" && enroll_secboot
+enroll_secboot()
+{
+    case "${ENROLL_ALL}" in
+        0)
+            PS3="Select a file: "
+            select nvram in "${QEMU_NVRAM_DIR}"/*_VARS.fd
+            do
+                if test "${nvram}"
+                then
+                    enroll_file "${nvram}"
+                    break
+                fi
+            done
+        ;;
 
-while getopts 'a' arg
+        1)
+            for nvram in "${QEMU_NVRAM_DIR}"/*_VARS.fd
+            do
+                enroll_file "${nvram}" || true
+            done
+        ;;
+    esac
+
+    return $?
+}
+
+if test -z "${1:-}"
+then
+    help
+else
+    echo "Error: ${1:-}: invalid argument"
+fi
+
+while getopts 'ah' arg
 do
    case "${arg}" in
         'a')
-            ENROLL_ALL=1 enroll_secboot
+            ENROLL_ALL=1
+            enroll_secboot
             exit $?
+        ;;
+
+        'h')
+            help
+        ;;
+
+        ?)
+            if test -z "${1:-}"
+            then
+                help
+            fi
+
+            echo "${1:-}: invalid argument"
         ;;
     esac
 done
