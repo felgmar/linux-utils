@@ -54,7 +54,7 @@ apt install -y build-essential flex bison libssl-dev libelf-dev debhelper-compat
 
 make ARCH=$(uname -m) defconfig && LOCALVERSION=-custom nice make -j $(nproc --all) bindeb-pkg
 
-if "${cleanup_after_build}" == "true"
+if test "${cleanup_after_build}" == "true"
 then
     apt purge -y --autoremove build-essential dpkg-dev flex bison libssl-dev libelf-dev debhelper-compat
 else
