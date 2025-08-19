@@ -45,6 +45,8 @@ enroll_secboot()
                 then
                     enroll_file "${nvram}"
                     break
+                else
+                    echo "The file ${nvram} already exists"
                 fi
             done
         ;;
@@ -60,19 +62,16 @@ enroll_secboot()
     return $?
 }
 
-if test -z "${1:-}"
+if test -z "${1}"
 then
     help
-else
-    echo "Error: ${1:-}: invalid argument"
 fi
 
 while getopts 'ah' arg
 do
    case "${arg}" in
         'a')
-            ENROLL_ALL=1
-            enroll_secboot
+            ENROLL_ALL=1 enroll_secboot
             exit $?
         ;;
 
@@ -81,12 +80,10 @@ do
         ;;
 
         ?)
-            if test -z "${1:-}"
+            if test -z "${arg}"
             then
                 help
             fi
-
-            echo "${1:-}: invalid argument"
         ;;
     esac
 done
