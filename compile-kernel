@@ -50,13 +50,13 @@ fi
 
 cd "linux-${kbranch}.${kver}"
 
-apt install -y build-essential flex bison libssl-dev libelf-dev debhelper-compat
+apt install -y build-essential flex bison libssl-dev libelf-dev debhelper-compat libdw-dev
 
 make ARCH=$(uname -m) defconfig && LOCALVERSION=-custom nice make -j $(nproc --all) bindeb-pkg
 
 if test "${cleanup_after_build}" == "true"
 then
-    apt purge -y --autoremove build-essential dpkg-dev flex bison libssl-dev libelf-dev debhelper-compat
+    apt purge -y --autoremove build-essential dpkg-dev flex bison libssl-dev libelf-dev debhelper-compat libdw-dev
 else
     echo "Not cleaning up"
 fi
