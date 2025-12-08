@@ -16,7 +16,7 @@ Options:
 
 If no options are given, you will be prompted to select a file interactively.
 EOF
-    exit 0
+    return 0
 }
 
 enroll_file()
