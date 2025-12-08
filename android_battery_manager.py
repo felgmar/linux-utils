@@ -4,8 +4,8 @@ from typing import Any
 MAX_BATTERY_CAPACITY_TYPICAL: int = int(input("Enter the maximum battery capacity by design (in mAh): "))
 def get_stats() -> dict[str, Any]:
     import subprocess
-    COMMAND_STRING: str = "adb shell dumpsys battery"
-    output = subprocess.check_output(COMMAND_STRING, shell=True).decode()
+    COMMAND_STRING: list[str] = ["adb", "shell", "dumpsys", "battery"]
+    output = subprocess.check_output(COMMAND_STRING).decode()
     stats: dict[str, Any] = {}
 
     for line in output.splitlines():
