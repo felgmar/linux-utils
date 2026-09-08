@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 if __name__ == "__main__":
+    import os
     from argparse import ArgumentParser
-    from getpass import getuser
     from sys import platform
     from subprocess import run
     from os import path
@@ -10,7 +10,7 @@ if __name__ == "__main__":
     VALID_DISTROS: list[str] = [ "arch" ]
     SAVE_DIRECTORY: list[str] = [ "/etc/pacman.d/mirrorlist" ]
     CURRENT_PLATFORM: str = platform.lower()
-    CURRENT_USER: str = getuser()
+    CURRENT_USER: str = os.getlogin()
 
     if not CURRENT_PLATFORM == "linux":
         raise RuntimeError(f"{CURRENT_PLATFORM} is not supported")
