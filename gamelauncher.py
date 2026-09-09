@@ -12,10 +12,12 @@ class ArgumentManager():
     """
     def __init__(self) -> None:
         self.parser = ArgumentParser(description="A script for launching games with optimizations.")
+        self.parser.add_argument("-wayland", "--enable-wayland", action="store_true", help="Enable Wayland.")
         self.parser.add_argument("-hdr", "--enable-hdr", action="store_true", help="Enable HDR mode.")
-        self.parser.add_argument("-f", "--fullscreen", action="store_true", help="Launch the game in fullscreen mode.")
+        self.parser.add_argument("-f", "--enable-fullscreen", action="store_true", help="Launch the game in fullscreen mode.")
         self.parser.add_argument("--force-grab-cursor", action="store_true", help="Force grab the cursor in gamescope.")
         self.parser.add_argument("-nvidia", "--enable-proton-nvidia-flags", action="store_true", help="Enable Proton NVIDIA flags for better performance.")
+        self.parser.add_argument("-mangoapp", "--enable-mangoapp", action="store_true", help="Enable MangoHud.")
         self.parser.add_argument("command_line", nargs=REMAINDER, help="The command and arguments to launch the game.")
 
     def parse_arguments(self) -> Namespace:
@@ -27,9 +29,11 @@ class GameLauncher():
     with the use of tools like gamescope, mangohud and gamemode.
     """
     def __init__(self, args: list[str],
+                 enable_wayland: bool = False,
                  enable_hdr: bool = False, enable_fullscreen: bool = False,
                  force_grab_cursor: bool = False,
-                 enable_proton_nvidia_flags: bool = False) -> None:
+                 enable_proton_nvidia_flags: bool = False,
+                 enable_mangoapp: bool = False) -> None:
         self.args: list[str] = args
         self.app_id: int = -1
         self.resolution: dict[str, int] = {
@@ -38,10 +42,12 @@ class GameLauncher():
         }
 
         self.refresh_rate: int = -1
+        self.enable_wayland: bool = enable_wayland
         self.fullscreen_mode: bool = enable_fullscreen
         self.force_grab_cursor: bool = force_grab_cursor
         self.hdr_enabled: bool = enable_hdr
         self.enable_proton_nvidia_flags: bool = enable_proton_nvidia_flags
+        self.enable_mangoapp: bool = enable_mangoapp
 
         self.gamescope_path = str(shutil.which("gamescope"))
         self.mangohud_path = str(shutil.which("mangohud"))
@@ -150,8 +156,15 @@ class GameLauncher():
             if not self.refresh_rate == -1:
                 command_line.extend(["-r", str(self.refresh_rate)])
 
-            if self.is_wayland_available:
-                command_line.append("--expose-wayland")
+            if self.enable_wayland:
+                if self.is_wayland_available:
+                    command_line.append("--expose-wayland")
+                else:
+                    print("[!] You're currently not using Wayland but {0}.".format(os.environ.get("$XDG_SESSION_TYPE")))
+
+            if self.enable_mangoapp:
+                if self.is_mangohud_available:
+                    command_line.append("--mangoapp")
 
             if self.hdr_enabled:
                 for flag in self.__set_hdr_flags():
@@ -163,7 +176,8 @@ class GameLauncher():
             if self.force_grab_cursor:
                 command_line.append("--force-grab-cursor")
 
-            command_line.append("--immediate-flips")
+            command_line.append("--adaptive-sync")
+
             command_line.append("--")
 
         if self.enable_proton_nvidia_flags:
@@ -171,10 +185,11 @@ class GameLauncher():
             for env_var in self.__set_environment_variables():
                 command_line.append(env_var)
 
-        if self.is_mangohud_available:
-                command_line.append(self.mangohud_path)
-                if self.app_id == 255710:
-                    command_line.append("--dlsym")
+        if not self.enable_mangoapp:
+            if self.is_mangohud_available:
+                    command_line.append(self.mangohud_path)
+                    if self.app_id == 255710:
+                        command_line.append("--dlsym")
 
         if self.is_gamemoderun_available:
             command_line.append(self.gamemoderun_path)
@@ -222,6 +237,7 @@ class GameLauncher():
                 "resolution": "{}x{}".format(self.resolution["width"],
                                              self.resolution["height"]),
                 "refresh_rate": self.refresh_rate,
+                "enable_wayland": self.enable_wayland,
                 "fullscreen_mode": self.fullscreen_mode,
                 "force_grab_cursor": self.force_grab_cursor,
                 "is_hdr_enabled": self.hdr_enabled,
@@ -257,8 +273,10 @@ if __name__ == "__main__":
     argument_manager = ArgumentManager().parse_arguments()
 
     launcher = GameLauncher(argument_manager.command_line,
-                            enable_fullscreen=argument_manager.fullscreen,
+                            enable_wayland=argument_manager.enable_wayland,
+                            enable_fullscreen=argument_manager.enable_fullscreen,
                             force_grab_cursor=argument_manager.force_grab_cursor,
                             enable_hdr=argument_manager.enable_hdr,
-                            enable_proton_nvidia_flags=argument_manager.enable_proton_nvidia_flags)
+                            enable_proton_nvidia_flags=argument_manager.enable_proton_nvidia_flags,
+                            enable_mangoapp=argument_manager.enable_mangoapp)
     launcher.run(show_debug_info=True)
