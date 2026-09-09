@@ -12,9 +12,10 @@ class ArgumentManager():
     """
     def __init__(self) -> None:
         self.parser = ArgumentParser(description="A script for launching games with optimizations.")
-        self.parser.add_argument("--enable-hdr", action="store_true", help="Enable HDR mode.")
+        self.parser.add_argument("-hdr", "--enable-hdr", action="store_true", help="Enable HDR mode.")
+        self.parser.add_argument("-f", "--fullscreen", action="store_true", help="Launch the game in fullscreen mode.")
         self.parser.add_argument("--force-grab-cursor", action="store_true", help="Force grab the cursor in gamescope.")
-        self.parser.add_argument("--enable-proton-nvidia-flags", action="store_true", help="Enable Proton NVIDIA flags for better performance.")
+        self.parser.add_argument("-nvidia", "--enable-proton-nvidia-flags", action="store_true", help="Enable Proton NVIDIA flags for better performance.")
         self.parser.add_argument("command_line", nargs=REMAINDER, help="The command and arguments to launch the game.")
 
     def parse_arguments(self) -> Namespace:
@@ -25,7 +26,10 @@ class GameLauncher():
     A class for optimizing the launching of games
     with the use of tools like gamescope, mangohud and gamemode.
     """
-    def __init__(self, args: list[str], enable_hdr: bool = False, force_grab_cursor: bool = False, enable_proton_nvidia_flags: bool = False) -> None:
+    def __init__(self, args: list[str],
+                 enable_hdr: bool = False, enable_fullscreen: bool = False,
+                 force_grab_cursor: bool = False,
+                 enable_proton_nvidia_flags: bool = False) -> None:
         self.args: list[str] = args
         self.app_id: int = -1
         self.resolution: dict[str, int] = {
@@ -34,7 +38,7 @@ class GameLauncher():
         }
 
         self.refresh_rate: int = -1
-        self.fullscreen_mode: bool = False
+        self.fullscreen_mode: bool = enable_fullscreen
         self.force_grab_cursor: bool = force_grab_cursor
         self.hdr_enabled: bool = enable_hdr
         self.enable_proton_nvidia_flags: bool = enable_proton_nvidia_flags
@@ -145,12 +149,17 @@ class GameLauncher():
 
             if not self.refresh_rate == -1:
                 command_line.extend(["-r", str(self.refresh_rate)])
+
+            if self.is_wayland_available:
+                command_line.append("--expose-wayland")
+
             if self.hdr_enabled:
                 for flag in self.__set_hdr_flags():
                     command_line.append(flag)
 
             if self.fullscreen_mode:
                 command_line.append("--fullscreen")
+
             if self.force_grab_cursor:
                 command_line.append("--force-grab-cursor")
 
@@ -248,6 +257,8 @@ if __name__ == "__main__":
     argument_manager = ArgumentManager().parse_arguments()
 
     launcher = GameLauncher(argument_manager.command_line,
+                            enable_fullscreen=argument_manager.fullscreen,
+                            force_grab_cursor=argument_manager.force_grab_cursor,
                             enable_hdr=argument_manager.enable_hdr,
                             enable_proton_nvidia_flags=argument_manager.enable_proton_nvidia_flags)
     launcher.run(show_debug_info=True)
