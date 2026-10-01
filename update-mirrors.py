@@ -45,7 +45,7 @@ if __name__ == "__main__":
     if not path.isfile(args.save):
         raise FileNotFoundError(f"{args.save} does not exist")
 
-    CMD: str = f"rate-mirrors --allow-root --save {args.save} {args.distro}"
+    CMD: str = "rate-mirrors --allow-root --save {0} {1}".format(args.save, args.distro)
 
     try:
         run(args=CMD, shell=True)
