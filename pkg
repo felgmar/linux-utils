@@ -1,0 +1,111 @@
+#!/bin/sh
+
+if ! test -x "$(command -v sudo)"
+then
+    sudo pacman -S --needed sudo
+fi
+
+help()
+{
+    echo "Usage: $(basename "$0") [install|update|upgrade|purge|search|clean]"
+    exit 1
+}
+
+get_package_manager()
+{
+    for package_manager in pacman apt dnf zypper
+    do
+        if test -x "$(command -v "$package_manager")"
+        then
+            echo "$package_manager"
+        else
+            continue
+        fi
+    done
+}
+
+if test -z "$1"
+then
+    help
+fi
+
+run_pacman()
+{
+    exit_code="-1"
+    shift
+    case "$1" in
+        "install" | "in") shift; sudo pacman -S --needed "$@"; exit_code=$?;;
+        "remove" | "re") shift; sudo pacman -R "$@"; exit_code=$?;;
+        "update" | "up") shift; sudo pacman -Sy --needed; exit_code=$?;;
+        "upgrade" | "ug") shift; sudo pacman -Syu --needed; exit_code=$?;;
+        "purge" | "pu") shift; sudo pacman -Rncsdu "$@"; exit_code=$?;;
+        "search" | "se") shift; pacman -Ss "$@"; exit_code=$?;;
+        "clean" | "cl") shift; sudo pacman -Rncsdu "$(pacman -Qqtd)"; exit_code=$?;;
+        *)
+            if test ! -z "$1"
+            then
+                echo "error: $1: unknown command"
+                exit $exit_code
+            else
+                help
+            fi
+        ;;
+    esac
+}
+
+run_apt()
+{
+    exit_code="-1"
+    case "$1" in
+        "install" | "in") shift; sudo apt install --no-install-recommends "$@"; exit_code=$?;;
+        "remove" | "re") shift; sudo apt remove "$@"; exit_code=$?;;
+        "update" | "up") shift; sudo apt update; exit_code=$?;;
+        "upgrade" | "ug") shift; sudo apt upgrade; exit_code=$?;;
+        "purge" | "pu") shift; sudo apt purge --autoremove "$@"; exit_code=$?;;
+        "search" | "se") shift; apt search "$@"; exit_code=$?;;
+        "clean" | "cl") shift; sudo apt autoclean; exit_code=$?;;
+        *)
+            if test ! -z "$1"
+            then
+                echo "error: $1: unknown command"
+                exit $exit_code
+            else
+                help
+            fi
+        ;;
+    esac
+}
+
+run_dnf()
+{
+    exit_code="-1"
+    case "$1" in
+        "install" | "in") shift; sudo dnf install "$@"; exit_code=$?;;
+        "remove" | "re") shift; sudo dnf remove "$@"; exit_code=$?;;
+        "update" | "up") shift; sudo dnf check-update; exit_code=$?;;
+        "upgrade" | "ug") shift; sudo dnf upgrade; exit_code=$?;;
+        "purge" | "pu") shift; sudo dnf remove "$@"; exit_code=$?;;
+        "search" | "se") shift; dnf search "$@"; exit_code=$?;;
+        "clean" | "cl") shift; sudo dnf clean all; exit_code=$?;;
+        *)
+            if test ! -z "$1"
+            then
+                echo "error: $1: unknown command"
+                exit "$exit_code"
+            else
+                help
+            fi
+        ;;
+    esac
+}
+
+case "$(get_package_manager)" in
+    "pacman") run_pacman "$@";;
+    "apt") run_apt "$@";;
+    "dnf") run_dnf "$@";;
+    "zypper") run_zypper "$@";;
+    *)
+        echo "error: no supported package manager found"
+        exit 1
+    ;;
+esac

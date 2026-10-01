@@ -1,0 +1,27 @@
+#!/bin/sh
+
+help() {
+    echo "Usage: ${0} [-d <repo_dir>]"
+    echo "  -d <repo_dir>  Optimize the specified repository directory instead of the current directory"
+    return 0
+}
+
+while getopts "d:h" arg
+do
+    case "${arg}" in
+        'd') repo_dir="${OPTARG}"; break;;
+        'h') help; exit 0;;
+        *) test -z "${arg}" && echo "Invalid argument: ${arg}" || help && exit 1;;
+    esac
+done
+
+if test -z "${repo_dir}"
+then
+    git repack -a -d -f --depth=250 --window=250 || exit 1
+    exit $?
+fi
+
+previous_dir="$(pwd)"
+cd "${repo_dir}" || exit 1
+git repack -a -d -f --depth=250 --window=250 || exit 1
+cd "${previous_dir}" || exit 1
