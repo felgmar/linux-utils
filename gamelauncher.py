@@ -2,7 +2,7 @@
 from argparse import REMAINDER, ArgumentParser, Namespace
 import os
 import sys
-import subprocess
+import getpass
 import shutil
 from typing import Any
 
@@ -70,7 +70,7 @@ class GameLauncher():
                 self.app_id = int(arg.split("=")[1])
                 break
 
-        self.CURRENT_USER: str = os.getlogin()
+        self.CURRENT_USER: str = getpass.getuser()
         self.CURRENT_PLATFORM: str = sys.platform.lower()
 
     def set_display_resolution(self, width: int, height: int) -> None:
@@ -253,11 +253,7 @@ class GameLauncher():
             print(f"Running command: {' '.join(cmdline)}")
 
         try:
-            process = subprocess.run(
-                cmdline,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
+            process = os.execvpe(cmdline[0], cmdline, os.environ)
             exit_code: int = process.returncode
             process.check_returncode()
 
