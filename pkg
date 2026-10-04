@@ -7,8 +7,19 @@ fi
 
 help()
 {
-    echo "Usage: $(basename "$0") [install|update|upgrade|purge|search|clean]"
-    exit 1
+    <<EOF
+Usage: $(basename "$0") [OPTION]
+
+Options:
+  install, in      Install the package
+  remove, re       Remove the package
+  update, up       Update the package list
+  upgrade, ug      Upgrade all packages
+  purge, pu        Purge the package and its configuration files
+  search, se       Search for a package
+  clean, cl        Clean up unused packages
+EOF
+    exit 0
 }
 
 get_package_manager()
