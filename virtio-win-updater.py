@@ -23,11 +23,11 @@ parser.add_argument("-d", "--download-directory", type=str,
 parser.add_argument("-v", "--verbose", action="store_true",
                     help="Print more messages")
 
-group.add_argument("--version", action="version", version="%(prog)s 1.0")
+group.add_argument("--version", action="version", version="%(prog)s 1.1")
 
 args = parser.parse_args()
 
-def retrieve_upstream_content(destination_path: str, upstream_url: str):
+def retrieve_upstream_content(upstream_url: str, destination_path: str):
     destination = Path(destination_path).expanduser()
     request = urllib.request.Request(upstream_url)
 
@@ -42,7 +42,7 @@ def retrieve_upstream_content(destination_path: str, upstream_url: str):
             shutil.copyfileobj(response, output)
     except HTTPError as error:
         if error.code == 304:
-            print("File is already up to date:", destination)
+            print("The file {0} is already up to date.".format(destination_path))
             return
         raise
 
@@ -59,10 +59,10 @@ def get_virtio_iso(destination_path: str, branch: str):
     match branch:
         case "stable":
             print("Downloading file:", stable_iso)
-            retrieve_upstream_content(stable_iso, upstream_iso)
+            retrieve_upstream_content(upstream_iso, stable_iso)
         case "latest":
             print("Downloading file:", latest_iso)
-            retrieve_upstream_content(latest_iso, upstream_iso)
+            retrieve_upstream_content(upstream_iso, latest_iso)
         case _:
             if branch:
                 raise ValueError(f"{branch} is not a valid branch")
