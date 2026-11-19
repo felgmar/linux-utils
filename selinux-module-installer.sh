@@ -16,12 +16,13 @@ then
   exit 1
 fi
 
-if [ ! -x "$(command -v ausearch)" ] || [ ! -x "$(command -v audit2allow)" ] || [ ! -x "$(command -v semodule)" ]
+if [ ! -x "$(command -v ausearch)" ] ||
+    [ ! -x "$(command -v audit2allow)" ] ||
+    [ ! -x "$(command -v semodule)" ]
 then
   echo "This script requires the 'audit' and 'policycoreutils' packages to be installed."
   exit 1
 fi
-
 
 if [ -d "$CURRENT_DIR/selinux-modules" ]
 then
@@ -31,7 +32,13 @@ else
     mkdir selinux-modules
 fi
 
-cd selinux-modules
+if [ -d "selinux-modules" ]
+then
+    cd "selinux-modules"
+else
+    echo "[!] Folder 'selinux-modules' not found."
+    exit 1
+fi
 
 if [ -f "$1.pp" ]
 then
