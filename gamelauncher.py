@@ -28,12 +28,16 @@ class GameLauncher():
     A class for optimizing the launching of games
     with the use of tools like gamescope, mangohud and gamemode.
     """
-    def __init__(self, args: list[str],
+    def __init__(self,
+                 args: list[str],
                  enable_wayland: bool = False,
-                 enable_hdr: bool = False, enable_fullscreen: bool = False,
+                 enable_hdr: bool = False,
+                 enable_fullscreen: bool = False,
                  force_grab_cursor: bool = False,
-                 enable_proton_nvidia_flags: bool = False,
-                 enable_mangoapp: bool = False) -> None:
+                 enable_nvidia_flags: bool = False,
+                 enable_mangoapp: bool = False,
+                 gpu_manufacturer: str | None = None
+                 ) -> None:
         self.args: list[str] = args
         self.app_id: int = -1
         self.resolution: dict[str, int] = {
@@ -41,12 +45,15 @@ class GameLauncher():
             "height": -1
         }
 
+        self.environment: dict[str, str] = os.environ.copy()
+        self.gpu_manufacturer: str = gpu_manufacturer if gpu_manufacturer is not None else "Unknown"
+
         self.refresh_rate: int = -1
         self.enable_wayland: bool = enable_wayland
         self.fullscreen_mode: bool = enable_fullscreen
         self.force_grab_cursor: bool = force_grab_cursor
         self.hdr_enabled: bool = enable_hdr
-        self.enable_proton_nvidia_flags: bool = enable_proton_nvidia_flags
+        self.enable_nvidia_flags: bool = enable_nvidia_flags
         self.enable_mangoapp: bool = enable_mangoapp
 
         self.gamescope_path = str(shutil.which("gamescope"))
@@ -60,7 +67,7 @@ class GameLauncher():
         if self.gamemoderun_path == "None":
             raise FileNotFoundError("gamemoderun is not installed or not found in PATH.")
 
-        self.is_wayland_available: bool = os.environ.get("XDG_SESSION_TYPE") == "wayland"
+        self.is_wayland_available: bool = os.environ.get("XDG_SESSION_TYPE") != "wayland"
         self.is_gamescope_available: bool = True if self.gamescope_path else False
         self.is_mangohud_available: bool = True if self.mangohud_path else False
         self.is_gamemoderun_available: bool = True if self.gamemoderun_path else False
@@ -93,7 +100,8 @@ class GameLauncher():
         if self.refresh_rate == -1:
             self.refresh_rate = refresh_rate
 
-    def __set_hdr_flags(self, content_nits: int = 200,
+    def __set_hdr_flags(self,
+                        content_nits: int = 200,
                         itm_sdr_nits: int = 200,
                         itm_target_nits: int = 302) -> list[str]:
         """
@@ -101,40 +109,56 @@ class GameLauncher():
         Returns:
             list[str]: The HDR flags.
         """
-        hdr_flags:list[str] = [
+        return [
             "--hdr-enabled",
-            "--hdr-sdr-content-nits",
-            "{0}".format(content_nits),
+            "--hdr-sdr-content-nits {0}".format(content_nits),
             "--hdr-itm-enabled",
-            "--hdr-itm-sdr-nits",
-            "{0}".format(itm_sdr_nits),
-            "--hdr-itm-target-nits",
-            "{0}".format(itm_target_nits)
+            "--hdr-itm-sdr-nits {0}".format(itm_sdr_nits),
+            "--hdr-itm-target-nits {0}".format(itm_target_nits)
         ]
 
-        return hdr_flags
+    def __set_nvidia_flags(self) -> dict[str, str]:
+        """
+        Set the NVIDIA flags to be used inside gamescope.
+        Returns:
+            dict[str, str]: The NVIDIA flags.
+        """
+        return {
+            "PROTON_ENABLE_NVAPI": "1",
+            "PROTON_ENABLE_NGX_UPDATER": "1",
+            "DXVK_NVAPI_VKREFLEX": "1",
+            "PROTON_DLSS_UPGRADE": "1"
+        }
 
-    def __set_environment_variables(self) -> list[str]:
+    def __set_environment_variables(self) -> dict[str, str]:
         """
         Set the environment variables to be used inside gamescope.
         Returns:
-            list[str]: The environment variables.
+            dict[str, str]: The environment variables.
         """
-        env_vars: list[str] = [
-            "PROTON_ENABLE_NVAPI=1",
-            "PROTON_ENABLE_NGX_UPDATER=1",
-            "PROTON_ENABLE_WAYLAND=1",
-            "PROTON_ENABLE_HDR=1",
-            "DXVK_HDR=1",
-            "DXVK_NVAPI_VKREFLEX=1",
-            "PROTON_DLSS_UPGRADE=1"
-        ]
+        new_environment_flags: dict[str, str] = {
+            "PROTON_ENABLE_WAYLAND": "1",
+            "PROTON_ENABLE_HDR": "1",
+            "DXVK_HDR": "1"
+        }
 
-        return env_vars
+        match self.gpu_manufacturer.lower():
+            case "nvidia":
+                new_environment_flags.update(self.__set_nvidia_flags())
+            case "amd":
+                pass
+            case "intel":
+                pass
+            case _:
+                print(f"[!] Unknown GPU manufacturer: {self.gpu_manufacturer}")
 
-    def __build_cmdline(self, refresh_rate: int = 60,
+        return new_environment_flags
+
+    def __build_command_line(self,
+                        refresh_rate: int = 60,
                         resolution_width: int = 1920,
-                        resolution_height: int = 1080) -> list[str]:
+                        resolution_height: int = 1080,
+                        enable_downsampling: bool = False) -> list[str]:
         command_line: list[str] = []
 
         self.set_refresh_rate(refresh_rate)
@@ -148,10 +172,18 @@ class GameLauncher():
                 "-H", str(self.resolution['height'])
                 ])
 
-            command_line.extend([
-                "-w", "3840",
-                "-h", "2160"
-            ])
+            if enable_downsampling:
+                GAME_RESOLUTION: str = f"{self.resolution['width']}x{self.resolution['height']}"
+                print(f"[*] Downsampling is enabled. Game resolution was set to {GAME_RESOLUTION}.")
+                command_line.extend([
+                    "-w", "3840",
+                    "-h", "2160"
+                ])
+            else:
+                command_line.extend([
+                    "-w", str(self.resolution['width']),
+                    "-h", str(self.resolution['height'])
+                ])
 
             if not self.refresh_rate == -1:
                 command_line.extend(["-r", str(self.refresh_rate)])
@@ -160,7 +192,14 @@ class GameLauncher():
                 if self.is_wayland_available:
                     command_line.append("--expose-wayland")
                 else:
-                    print("[!] You're currently not using Wayland but {0}.".format(os.environ.get("$XDG_SESSION_TYPE")))
+                    CURRENT_SESSION_TYPE: str = os.environ.get("XDG_SESSION_TYPE", "Unknown")
+                    print(f"""[!] You enabled Wayland support but your current session is not running on Wayland.
+    - If you want to use Wayland, please log out and log in to a Wayland session.
+    - If you want to use X11, please disable Wayland support by removing
+        the '--enable-wayland' flag from the command line.
+
+Current session type: {CURRENT_SESSION_TYPE}
+""")
 
             if self.enable_mangoapp:
                 if self.is_mangohud_available:
@@ -180,16 +219,22 @@ class GameLauncher():
 
             command_line.append("--")
 
-        if self.enable_proton_nvidia_flags:
-            command_line.append("env")
-            for env_var in self.__set_environment_variables():
-                command_line.append(env_var)
+        if self.app_id == 255710:
+            # This DLL override allows Steam Workshop mods such as
+            # Patch Loader to work properly under Proton/Wine in Linux hosts.
+            command_line.append("WINEDLLOVERRIDES='winhttp,winmm=n,b'")
+
+        self.environment.update(self.__set_environment_variables())
+
+        if self.enable_nvidia_flags:
+            self.environment.update(self.__set_nvidia_flags())
 
         if not self.enable_mangoapp:
             if self.is_mangohud_available:
-                    command_line.append(self.mangohud_path)
-                    if self.app_id == 255710:
-                        command_line.append("--dlsym")
+                command_line.append(self.mangohud_path)
+
+                if self.app_id == 255710:
+                    command_line.append("--dlsym")
 
         if self.is_gamemoderun_available:
             command_line.append(self.gamemoderun_path)
@@ -198,7 +243,7 @@ class GameLauncher():
 
         return command_line
 
-    def __prepare(self) -> list[str]:
+    def __prepare_launch(self) -> list[str]:
         """
         Prepare the command line for launching the game.
         Args:
@@ -213,9 +258,10 @@ class GameLauncher():
             raise PermissionError("Do not run this script as root.")
 
         try:
-            return self.__build_cmdline(refresh_rate=200,
-                                        resolution_width=2560,
-                                        resolution_height=1440)
+            return self.__build_command_line(refresh_rate=200,
+                                             resolution_width=2560,
+                                             resolution_height=1440,
+                                             enable_downsampling=False)
         except Exception as e:
             raise e
 
@@ -225,10 +271,9 @@ class GameLauncher():
         Returns:
             int: The exit code of the game process.
         """
-        cmdline: list[str] = []
         exit_code: int = 0
 
-        cmdline = self.__prepare()
+        command_line: list[str] = self.__prepare_launch()
 
         if show_debug_info:
             debug_info: dict[str, Any] = {
@@ -250,10 +295,10 @@ class GameLauncher():
             for key, value in debug_info.items():
                 print("{0}={1}".format(key, value))
 
-            print(f"Running command: {' '.join(cmdline)}")
+            print(f"Running command: {' '.join(command_line)}")
 
         try:
-            process = os.execvpe(cmdline[0], cmdline, os.environ)
+            process = os.execvpe(command_line[0], command_line, self.environment)
             exit_code: int = process.returncode
             process.check_returncode()
 
@@ -269,10 +314,11 @@ if __name__ == "__main__":
     argument_manager = ArgumentManager().parse_arguments()
 
     launcher = GameLauncher(argument_manager.command_line,
+                            gpu_manufacturer=argument_manager.gpu_manufacturer,
                             enable_wayland=argument_manager.enable_wayland,
                             enable_fullscreen=argument_manager.enable_fullscreen,
                             force_grab_cursor=argument_manager.force_grab_cursor,
                             enable_hdr=argument_manager.enable_hdr,
-                            enable_proton_nvidia_flags=argument_manager.enable_proton_nvidia_flags,
+                            enable_nvidia_flags=argument_manager.enable_nvidia_flags,
                             enable_mangoapp=argument_manager.enable_mangoapp)
     launcher.run(show_debug_info=True)
